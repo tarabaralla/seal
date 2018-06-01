@@ -5,11 +5,11 @@ import java.util.Set;
 import clast.seal.core.model.SealDb;
 import clast.seal.core.model.User;
 
-public class AdminDao {
+public class UserDao {
 	
 	private SealDb db;
 	
-	public AdminDao(SealDb db) {
+	public UserDao(SealDb db) {
 		super();
 		this.db = db;
 	}

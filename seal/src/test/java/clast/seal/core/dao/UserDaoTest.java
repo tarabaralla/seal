@@ -21,9 +21,9 @@ import clast.seal.core.model.SealDb;
 import clast.seal.core.model.User;
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class AdminDaoTest {
+public class UserDaoTest {
 
-	private AdminDao adminDao;
+	private UserDao userDao;
 	private SealDb db;
 	private Set<User> users;
 	
@@ -40,7 +40,7 @@ public class AdminDaoTest {
 			}
 		});
 
-		adminDao = new AdminDao(db);
+		userDao = new UserDao(db);
 	}
 
 	@Test
@@ -48,50 +48,50 @@ public class AdminDaoTest {
 		assertEquals(0, users.size());
 
 		User user1 = createUser("user1", "pwd1", "name1", "lastname1", "email1", "phone1");
-		assertTrue(adminDao.addUser(user1));
+		assertTrue(userDao.addUser(user1));
 		verify(db, times(1)).addUser(user1);
 		assertEquals(1, users.size());
-		verifyUserFields(adminDao.getAllUsers().iterator().next(), "user1", "pwd1", "name1", "lastname1", "email1", "phone1");
+		verifyUserFields(userDao.getAllUsers().iterator().next(), "user1", "pwd1", "name1", "lastname1", "email1", "phone1");
 
 		User user2 = createUserStepByStep("user2", "pwd2", "name2", "lastname2", "email2", "phone2");
-		assertTrue(adminDao.addUser(user2));
+		assertTrue(userDao.addUser(user2));
 		verify(db, times(1)).addUser(user1);
 		assertEquals(2, users.size());
-		verifyUserFields(adminDao.getAllUsers().iterator().next(), "user2", "pwd2", "name2", "lastname2", "email2", "phone2");
+		verifyUserFields(userDao.getAllUsers().iterator().next(), "user2", "pwd2", "name2", "lastname2", "email2", "phone2");
 
 		User user3 = createUser("user1");
-		assertFalse(adminDao.addUser(user3));
+		assertFalse(userDao.addUser(user3));
 		verify(db, times(2)).addUser(user3);
 		assertEquals(2, users.size());
 	}
 
 	@Test
 	public void testNoUsers() {
-		assertEquals(0, adminDao.getAllUsers().size());
+		assertEquals(0, userDao.getAllUsers().size());
 	}
 
 	@Test
 	public void testOneUser() {
-		adminDao.addUser(createUser("user1"));
-		assertEquals(1, adminDao.getAllUsers().size());
+		userDao.addUser(createUser("user1"));
+		assertEquals(1, userDao.getAllUsers().size());
 		verify(db, times(1)).getAllUsers();
 	}
 
 	@Test
 	public void testMoreUsers() {
-		assertEquals(0, adminDao.getAllUsers().size());
+		assertEquals(0, userDao.getAllUsers().size());
 		verify(db, times(1)).getAllUsers();
 
-		adminDao.addUser(createUser("user1"));
-		assertEquals(1, adminDao.getAllUsers().size());
+		userDao.addUser(createUser("user1"));
+		assertEquals(1, userDao.getAllUsers().size());
 		verify(db, times(2)).getAllUsers();
 
-		adminDao.addUser(createUser("user2"));
-		assertEquals(2, adminDao.getAllUsers().size());
+		userDao.addUser(createUser("user2"));
+		assertEquals(2, userDao.getAllUsers().size());
 		verify(db, times(3)).getAllUsers();
 
-		adminDao.addUser(createUser("user3"));
-		assertEquals(3, adminDao.getAllUsers().size());
+		userDao.addUser(createUser("user3"));
+		assertEquals(3, userDao.getAllUsers().size());
 		verify(db, times(4)).getAllUsers();
 	}
 
