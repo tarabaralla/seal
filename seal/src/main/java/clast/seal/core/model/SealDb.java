@@ -8,4 +8,8 @@ public interface SealDb {
 
 	public abstract boolean addUser(User user);
 
+	public abstract Set<Role> getAllRoles();
+
+	public abstract boolean addRole(Role role);
+
 }

@@ -29,7 +29,6 @@ public class UserDaoTest {
 	
 	@Before
 	public void setUp() {
-
 		users = new HashSet<User>();
 
 		db = mock(SealDb.class);
@@ -51,13 +50,13 @@ public class UserDaoTest {
 		assertTrue(userDao.addUser(user1));
 		verify(db, times(1)).addUser(user1);
 		assertEquals(1, users.size());
-		verifyUserFields(userDao.getAllUsers().iterator().next(), "user1", "pwd1", "name1", "lastname1", "email1", "phone1");
+		verifyUser(userDao.getAllUsers().iterator().next(), "user1", "pwd1", "name1", "lastname1", "email1", "phone1");
 
 		User user2 = createUserStepByStep("user2", "pwd2", "name2", "lastname2", "email2", "phone2");
 		assertTrue(userDao.addUser(user2));
 		verify(db, times(1)).addUser(user1);
 		assertEquals(2, users.size());
-		verifyUserFields(userDao.getAllUsers().iterator().next(), "user2", "pwd2", "name2", "lastname2", "email2", "phone2");
+		verifyUser(userDao.getAllUsers().iterator().next(), "user2", "pwd2", "name2", "lastname2", "email2", "phone2");
 
 		User user3 = createUser("user1");
 		assertFalse(userDao.addUser(user3));
@@ -122,7 +121,7 @@ public class UserDaoTest {
 		return user;
 	}
 
-	private void verifyUserFields(User user, String username, String password, String name, String lastname, String email, String phone) {
+	private void verifyUser(User user, String username, String password, String name, String lastname, String email, String phone) {
 		assertEquals(username, user.getUsername());
 		assertEquals(password, user.getPassword());
 		assertEquals(name, user.getName());

@@ -6,11 +6,10 @@ import clast.seal.core.model.SealDb;
 import clast.seal.core.model.User;
 
 public class UserDao {
-	
+
 	private SealDb db;
-	
+
 	public UserDao(SealDb db) {
-		super();
 		this.db = db;
 	}
 
@@ -20,7 +19,6 @@ public class UserDao {
 
 	public boolean addUser(User user) {
 		return db.addUser(user);
-		
 	}
 
 }
