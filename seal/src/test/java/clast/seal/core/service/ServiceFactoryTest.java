@@ -1,6 +1,7 @@
 package clast.seal.core.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import javax.inject.Inject;
 
@@ -8,81 +9,82 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import clast.seal.core.service.role.RS_Type;
-import clast.seal.core.service.role.RoleService;
 import clast.seal.core.service.role.RoleServiceProducer;
 import clast.seal.core.service.role.RoleServiceType;
 import clast.seal.core.service.session.SS_Type;
-import clast.seal.core.service.session.SessionService;
 import clast.seal.core.service.session.SessionServiceProducer;
 import clast.seal.core.service.session.SessionServiceType;
 import clast.seal.core.service.user.US_Type;
-import clast.seal.core.service.user.UserService;
 import clast.seal.core.service.user.UserServiceProducer;
 import clast.seal.core.service.user.UserServiceType;
 
 @RunWith(WeldJUnit4Runner.class)
 public class ServiceFactoryTest {
-	
+
 	@Inject
 	@SessionServiceProducer
 	@SS_Type(SessionServiceType.MONGO_DB_SS)
-	private SessionService mongoSessionService;
-	
+	private Service mongoSessionService;
+
 	@Inject
 	@SessionServiceProducer
 	@SS_Type(SessionServiceType.JPA_SS)
-	private SessionService jpaSessionService;
-	
+	private Service jpaSessionService;
+
 	@Inject
 	@UserServiceProducer
 	@US_Type(UserServiceType.MONGO_DB_US)
-	private UserService mongoUserService;
+	private Service mongoUserService;
 
 	@Inject
 	@UserServiceProducer
 	@US_Type(UserServiceType.JPA_US)
-	private UserService jpaUserService;
+	private Service jpaUserService;
 
 	@Inject
 	@RoleServiceProducer
 	@RS_Type(RoleServiceType.MONGO_DB_RS)
-	private RoleService mongoRoleService;
+	private Service mongoRoleService;
 
 	@Inject
 	@RoleServiceProducer
 	@RS_Type(RoleServiceType.JPA_RS)
-	private RoleService jpaRoleService;
-	
+	private Service jpaRoleService;
+
 	@Test
 	public void testMongoSessionServiceCreation() {
+		assertTrue(mongoSessionService instanceof MongoSessionService);
 		assertEquals("Mongo Session Service", mongoSessionService.getDescription());
 	}
-	
+
 	@Test
 	public void testJPASessionServiceCreation() {
+		assertTrue(jpaSessionService instanceof JPASessionService);
 		assertEquals("JPA Session Service", jpaSessionService.getDescription());
 	}
-	
+
 	@Test
 	public void testMongoUserService() {
+		assertTrue(mongoUserService instanceof MongoUserService);
 		assertEquals("Mongo User Service", mongoUserService.getDescription());
 	}
-	
+
 	@Test
 	public void testJPAUserService() {
+		assertTrue(jpaUserService instanceof JPAUserService);
 		assertEquals("JPA User Service", jpaUserService.getDescription());
 	}
-	
+
 	@Test
 	public void testMongoRoleService() {
+		assertTrue(mongoRoleService instanceof MongoRoleService);
 		assertEquals("Mongo Role Service", mongoRoleService.getDescription());
 	}
-	
+
 	@Test
 	public void testJPARoleService() {
+		assertTrue(jpaRoleService instanceof JPARoleService);
 		assertEquals("JPA Role Service", jpaRoleService.getDescription());
 	}
-	
-	
 
 }
