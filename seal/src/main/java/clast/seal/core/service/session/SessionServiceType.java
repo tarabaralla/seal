@@ -1,7 +1,7 @@
 package clast.seal.core.service.session;
 
-import clast.seal.core.service.JPASessionService;
-import clast.seal.core.service.MongoSessionService;
+import clast.seal.jpa.service.JPASessionService;
+import clast.seal.mongo.service.MongoSessionService;
 
 public enum SessionServiceType {
 	

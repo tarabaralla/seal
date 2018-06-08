@@ -1,7 +1,7 @@
 package clast.seal.core.service.role;
 
-import clast.seal.core.service.JPARoleService;
-import clast.seal.core.service.MongoRoleService;
+import clast.seal.jpa.service.JPARoleService;
+import clast.seal.mongo.service.MongoRoleService;
 
 public enum RoleServiceType {
 	

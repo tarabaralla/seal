@@ -1,7 +1,7 @@
 package clast.seal.core.service.user;
 
-import clast.seal.core.service.JPAUserService;
-import clast.seal.core.service.MongoUserService;
+import clast.seal.jpa.service.JPAUserService;
+import clast.seal.mongo.service.MongoUserService;
 
 public enum UserServiceType {
 	
