@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import clast.seal.core.model.LeafRole;
 import clast.seal.core.model.Role;
 import clast.seal.core.service.WeldJUnit4Runner;
 import clast.seal.core.service.role.RS_Type;
@@ -71,7 +72,7 @@ public class MongoRoleServiceTest {
 	}
 	
 	private Role createTestRole(String name) {
-		return new Role(name);
+		return new LeafRole(name);
 	}
 	
 	private void verifyRole(Role role, String name) {
