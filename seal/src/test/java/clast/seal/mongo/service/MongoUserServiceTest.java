@@ -61,17 +61,17 @@ public class MongoUserServiceTest {
 	public void testMongoUserCreation() {
 		assertEquals(0, users.size());
 
-		User user1 = createTestUser("user1", "pwd1", "name1", "lastname1", "email1", "phone1");
+		User user1 = createTestUser("user1");
 		assertTrue(mongoUserService.createUser(user1));
 		verify(db, times(1)).createUser(user1);
 		assertEquals(1, users.size());
-		verifyUser(mongoUserService.findAllUsers().iterator().next(), "user1", "pwd1", "name1", "lastname1", "email1", "phone1");
+		assertEquals(user1, mongoUserService.findAllUsers().iterator().next());
 
-		User user2 = createTestUserStepByStep("user2", "pwd2", "name2", "lastname2", "email2", "phone2");
+		User user2 = createTestUser("user2");
 		assertTrue(mongoUserService.createUser(user2));
 		verify(db, times(1)).createUser(user1);
 		assertEquals(2, users.size());
-		verifyUser(mongoUserService.findAllUsers().iterator().next(), "user2", "pwd2", "name2", "lastname2", "email2", "phone2");
+		assertEquals(user2, mongoUserService.findAllUsers().iterator().next());
 
 		User user3 = createTestUser("user1");
 		assertFalse(mongoUserService.createUser(user3));
@@ -113,29 +113,6 @@ public class MongoUserServiceTest {
 	
 	private User createTestUser(String username) {
 		return new User(username);
-	}
-	
-	private User createTestUser(String username, String password, String name, String lastname, String email, String phone) {
-		return new User(username, password, name, lastname, email, phone);
-	}
-	
-	private User createTestUserStepByStep(String username, String password, String name, String lastname, String email, String phone) {
-		User user = createTestUser(username);
-		user.setPassword(password);
-		user.setName(name);
-		user.setLastname(lastname);
-		user.setEmail(email);
-		user.setPhone(phone);
-		return user;
-	}
-	
-	private void verifyUser(User user, String username, String password, String name, String lastname, String email, String phone) {
-		assertEquals(username, user.getUsername());
-		assertEquals(password, user.getPassword());
-		assertEquals(name, user.getName());
-		assertEquals(lastname, user.getLastname());
-		assertEquals(email, user.getEmail());
-		assertEquals(phone, user.getPhone());
 	}
 
 }
