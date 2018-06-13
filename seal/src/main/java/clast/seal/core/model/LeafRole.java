@@ -4,9 +4,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class LeafRole extends Role {
+	
+	public LeafRole() {
+		super();
+	}
 
-	public LeafRole(String name) {
-		super(name);
+	public LeafRole(String uuid) {
+		super(uuid);
 	}
 	
 	@Override

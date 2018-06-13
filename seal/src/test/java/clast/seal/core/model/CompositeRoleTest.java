@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,13 +27,20 @@ public class CompositeRoleTest {
 
 	@Before
 	public void setUp() {
-		role = new CompositeRole("compositeRole");
-		cr1 = new CompositeRole("role");
-		cr2 = new CompositeRole("cr2");
-		cr3 = new CompositeRole("cr3");
-		lr1 = new LeafRole("role");
-		lr2 = new LeafRole("lr2");
-		lr3 = new LeafRole("lr3");
+		role = new CompositeRole( UUID.randomUUID().toString() );
+		role.setName("compositeRole");
+		cr1 = new CompositeRole( UUID.randomUUID().toString() );
+		cr1.setName("role");
+		cr2 = new CompositeRole();
+		cr2.setName("cr2");
+		cr3 = new CompositeRole( UUID.randomUUID().toString() );
+		cr3.setName("cr3");
+		lr1 = new LeafRole( UUID.randomUUID().toString() );
+		lr1.setName("role");
+		lr2 = new LeafRole( UUID.randomUUID().toString() );
+		lr2.setName("lr2");
+		lr3 = new LeafRole( UUID.randomUUID().toString() );
+		lr3.setName("lr3");
 	}
 	
 	@Test
@@ -56,7 +65,7 @@ public class CompositeRoleTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("A role cannot add a sub-role that is already present in its sub-roles tree");
 		role.addSubRole(cr1);
-		role.addSubRole(lr1);
+		role.addSubRole(cr1);
 	}
 	
 	@Test

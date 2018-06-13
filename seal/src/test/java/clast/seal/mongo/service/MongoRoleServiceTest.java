@@ -64,18 +64,24 @@ public class MongoRoleServiceTest {
 	public void testRoleCreation() {
 		assertEquals(0, roles.size());
 		
-		Role role1 = createTestRole("role1");		
+		Role role1 = createTestRole(1l, "uuid1", "role1");		
 		assertTrue( mongoRoleService.createRole(role1) );
 		verify( db, times(1) ).createRole(role1);
 		assertEquals(1, roles.size());
-		verifyRole(mongoRoleService.findAllRoles().iterator().next(), "role1");
+		verifyRole(mongoRoleService.findAllRoles().iterator().next(), 1l, "uuid1", "role1");
 	}
 	
-	private Role createTestRole(String name) {
-		return new LeafRole(name);
+	private Role createTestRole(Long id, String uuid, String name) {
+		Role role = new LeafRole();
+		role.setId(id);
+		role.setUuid(uuid);
+		role.setName(name);
+		return role;
 	}
 	
-	private void verifyRole(Role role, String name) {
+	private void verifyRole(Role role, Long id, String uuid, String name) {
+		assertEquals(id, role.getId());
+		assertEquals(uuid, role.getUuid());
 		assertEquals(name, role.getName());
 	}
 

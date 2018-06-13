@@ -4,10 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 
 public class RoleTest {
 	
@@ -15,24 +18,22 @@ public class RoleTest {
 	
 	private Role cr1;
 	private Role cr2;
-	private Role lr1;
-	
 	
 	@Before
 	public void setUp() {
-		role = new CompositeRole("role");
-		cr1 = new CompositeRole("cr1");
-		cr2 = new CompositeRole("cr2");
-		lr1 = new CompositeRole("cr1");
+		role = new CompositeRole( UUID.randomUUID().toString() );
+		cr1 = new CompositeRole( UUID.randomUUID().toString() );
+		cr2 = new CompositeRole( UUID.randomUUID().toString() );
 	}
 
 	@Test
 	public void testEqualRoles() {
 		// @formatter:off
 		EqualsVerifier.forClass(Role.class)
-						.withIgnoredFields("managedRoles")
-							.withPrefabValues(Role.class, new LeafRole("lr1"), new LeafRole("lr2"))
-								.verify();
+						.withOnlyTheseFields("uuid")
+						.withPrefabValues(Role.class, new LeafRole("lr1"), new LeafRole("lr2"))
+						.suppress(Warning.NONFINAL_FIELDS)
+						.verify();
 		// @formatter:on
 	}
 	
@@ -46,7 +47,7 @@ public class RoleTest {
 		assertTrue(role.addManagedRole(cr1));
 		assertEquals(2, role.getDirectManagedRoles().size());
 		
-		assertFalse(role.addManagedRole(lr1));
+		assertFalse(role.addManagedRole(cr1));
 		assertEquals(2, role.getDirectManagedRoles().size());
 	}
 	

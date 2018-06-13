@@ -8,9 +8,14 @@ import java.util.Set;
 public class CompositeRole extends Role {
 
 	private Set<Role> subRoles;
+	
+	public CompositeRole() {
+		super();
+		subRoles = new HashSet<>();
+	}
 
-	public CompositeRole(String name) {
-		super(name);
+	public CompositeRole(String uuid) {
+		super(uuid);
 		subRoles = new HashSet<>();
 	}
 

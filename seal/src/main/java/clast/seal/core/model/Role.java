@@ -4,19 +4,30 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class Role {
+import clast.seal.core.persistence.Entity;
 
-	private final String name;
+public abstract class Role extends Entity {
+
+	private String name;
 	
 	private Set<Role> managedRoles;
+	
+	public Role() {
+		super();
+		managedRoles = new HashSet<>();
+	}
 
-	public Role(String name) {
-		this.name = name;
+	public Role(String uuid) {
+		super(uuid);
 		managedRoles = new HashSet<>();
 	}
 
 	public String getName() {
 		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	public abstract void addSubRole(Role role);
@@ -57,27 +68,12 @@ public abstract class Role {
 
 	@Override
 	public final int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
+		return super.hashCode();
 	}
 
 	@Override
 	public final boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof Role))
-			return false;
-		Role other = (Role) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+		return super.equals(obj);
 	}
 
 }

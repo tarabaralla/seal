@@ -5,23 +5,34 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class User {
+import clast.seal.core.persistence.Entity;
 
-	private final String username;
+public class User extends Entity {
+	
+	private String username;
 	private String password;
 	private String name;
 	private String lastname;
 	private String email;
 	private String phone;
 	private Set<Role> roles;
-
-	public User(String username) {
-		this.username = username;
-		this.roles = new HashSet<>();
+	
+	public User() {
+		super();
+		this.roles = new HashSet<>();		
 	}
 
+	public User(String uuid) {
+		super(uuid);
+		this.roles = new HashSet<>();
+	}
+	
 	public String getUsername() {
 		return username;
+	}
+	
+	public void setUsername(String username) {
+		this.username = username;		
 	}
 
 	public String getPassword() {
@@ -117,27 +128,12 @@ public class User {
 
 	@Override
 	public final int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((username == null) ? 0 : username.hashCode());
-		return result;
+		return super.hashCode();
 	}
 
 	@Override
 	public final boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof User))
-			return false;
-		User other = (User) obj;
-		if (username == null) {
-			if (other.username != null)
-				return false;
-		} else if (!username.equals(other.username))
-			return false;
-		return true;
+		return super.equals(obj);
 	}
 
 }
