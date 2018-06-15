@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.UUID;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,20 +19,30 @@ public class RoleTest {
 	
 	@Before
 	public void setUp() {
-		role = new CompositeRole( UUID.randomUUID().toString() );
-		cr1 = new CompositeRole( UUID.randomUUID().toString() );
-		cr2 = new CompositeRole( UUID.randomUUID().toString() );
+		role = new CompositeRole("role");
+		cr1 = new CompositeRole("cr1");
+		cr2 = new CompositeRole("cr2");
 	}
 
 	@Test
 	public void testEqualRoles() {
 		// @formatter:off
 		EqualsVerifier.forClass(Role.class)
-						.withOnlyTheseFields("uuid")
-						.withPrefabValues(Role.class, new LeafRole("lr1"), new LeafRole("lr2"))
+						.withOnlyTheseFields("id","name")
+						.withPrefabValues(Role.class, createTestLeafRole("lr1", "leafRole1"), createTestCompositeRole("lr1", null))
 						.suppress(Warning.NONFINAL_FIELDS)
 						.verify();
 		// @formatter:on
+	}
+	
+	
+	@Test
+	public void testRoleFields() {
+		Role role = createTestLeafRole("lr1", "leafRole1");
+		verifyRole(role, "lr1", "leafRole1");
+		
+		role = createTestCompositeRole("cr1", "compositeRole1");
+		verifyRole(role, "cr1", "compositeRole1");
 	}
 	
 	@Test
@@ -66,7 +74,7 @@ public class RoleTest {
 	}
 	
 	@Test
-	public void testgetDirectManagedRole() {
+	public void testGetDirectManagedRole() {
 		role.addManagedRole(role);
 		role.addSubRole(cr1);
 		cr1.addManagedRole(cr2);
@@ -79,6 +87,25 @@ public class RoleTest {
 		role.addSubRole(cr1);
 		cr1.addManagedRole(cr2);
 		assertEquals(2, role.getAllManagedRoles().size());
+	}
+	
+	private Role createTestCompositeRole(String id, String name) {
+		Role role = new CompositeRole();
+		role.setId(id);
+		role.setName(name);
+		return role;
+	}
+	
+	private Role createTestLeafRole(String id, String name) {
+		Role role = new LeafRole();
+		role.setId(id);
+		role.setName(name);
+		return role;
+	}
+	
+	private void verifyRole(Role role, String id, String name) {
+		assertEquals(id, role.getId());
+		assertEquals(name, role.getName());
 	}
 
 }

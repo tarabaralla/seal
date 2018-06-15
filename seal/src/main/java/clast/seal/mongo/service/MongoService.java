@@ -1,18 +1,22 @@
 package clast.seal.mongo.service;
 
-import clast.seal.mongo.persistence.Database;
-import clast.seal.mongo.persistence.MongoDatabase;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
+import org.apache.log4j.Logger;
+
+
 
 public abstract class MongoService {
 	
-	Database db;
+	EntityManager em;
 	
-	MongoService() {
-		db = new MongoDatabase();
-	}
+	static final Logger logger = Logger.getLogger(MongoService.class);
 	
-	void setDatabase(Database db) {
-		this.db = db;
+	public MongoService() {
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("mongo_pu");
+	    em = emf.createEntityManager();
 	}
 
 }

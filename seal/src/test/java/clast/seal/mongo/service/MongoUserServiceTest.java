@@ -1,21 +1,20 @@
 package clast.seal.mongo.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+
+import com.impetus.kundera.KunderaException;
 
 import clast.seal.core.model.User;
 import clast.seal.core.service.WeldJUnit4Runner;
@@ -23,33 +22,21 @@ import clast.seal.core.service.user.US_Type;
 import clast.seal.core.service.user.UserService;
 import clast.seal.core.service.user.UserServiceProducer;
 import clast.seal.core.service.user.UserServiceType;
-import clast.seal.mongo.persistence.Database;
 
 @RunWith(WeldJUnit4Runner.class)
 public class MongoUserServiceTest {
-
+	
 	@Inject
 	@UserServiceProducer
 	@US_Type(UserServiceType.MONGO_DB_US)
 	private UserService mongoUserService;
 	
-	private Database db;
-	
-	private Set<User> users;
+	@Rule
+	public ExpectedException expectedEx = ExpectedException.none();
 	
 	@Before
 	public void setUp() {
-		users = new HashSet<User>();
-
-		db = mock(Database.class);
-		when(db.findAllUsers()).thenReturn(users);
-		when(db.createUser(any(User.class))).thenAnswer(new Answer<Boolean>() {
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				return users.add(invocation.getArgumentAt(0, User.class));
-			}
-		});
 		
-		((MongoService) mongoUserService).setDatabase(db);
 	}
 	
 	@Test
@@ -58,61 +45,73 @@ public class MongoUserServiceTest {
 	}
 	
 	@Test
-	public void testMongoUserCreation() {
-		assertEquals(0, users.size());
+	public void testCreateUser() {
+		assertTrue( mongoUserService.createUser( createTestUser("user1", "password1") ) );
+	}
+	
+	@Test
+	public void testCreateUserWithoutUsername() {
+		expectedEx.expect(KunderaException.class);
+		
+		User user = new User();
+		user.setPassword("password1");
+		mongoUserService.createUser(user);
+	}
+	
+	@Test
+	public void testCreateUserWithoutPassword() {
+		expectedEx.expect(KunderaException.class);
+		
+		User user = new User();
+		user.setUsername("user1");
+		mongoUserService.createUser(user);
+	}
+	
+	@Test
+	public void testCreateExistingUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Cannot create user: a user with same id already exist.");
+		
+		User user = createTestUser("user1", "password1");
+		
+		mongoUserService.createUser(user);
+		mongoUserService.createUser(user);
+	}
+	
+	@Test
+	public void testCreateUserWithOccupiedUsername() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Cannot create user: username already assigned to another user.");
+		
+		User user1 = createTestUser("user1", "password1");
+		mongoUserService.createUser(user1);
 
-		User user1 = createTestUser("user1");
-		assertTrue(mongoUserService.createUser(user1));
-		verify(db, times(1)).createUser(user1);
+		User user2 = createTestUser("user1", "password2");
+		mongoUserService.createUser(user2);
+	}
+	
+	@Test
+	public void testfindAllUsers() {
+		
+		assertEquals(0, mongoUserService.findAllUsers().size());
+		
+		mongoUserService.createUser( createTestUser("user1", "pwd1") );
+		Set<User> users = mongoUserService.findAllUsers();
 		assertEquals(1, users.size());
-		assertEquals(user1, mongoUserService.findAllUsers().iterator().next());
+		assertEquals("user1", users.iterator().next().getUsername());
 
-		User user2 = createTestUser("user2");
-		assertTrue(mongoUserService.createUser(user2));
-		verify(db, times(1)).createUser(user1);
+		mongoUserService.createUser( createTestUser("user2", "pwd2") );
+		users = mongoUserService.findAllUsers();
+		Set<String> usernames = users.stream()
+				.map( un -> un.getUsername() )
+				.collect( Collectors.toSet() );
 		assertEquals(2, users.size());
-		assertEquals(user2, mongoUserService.findAllUsers().iterator().next());
-
-		User user3 = createTestUser("user1");
-		assertFalse(mongoUserService.createUser(user3));
-		verify(db, times(2)).createUser(user3);
-		assertEquals(2, users.size());
+		assertTrue(usernames.contains("user1"));
+		assertTrue(usernames.contains("user2"));
 	}
 	
-
-	@Test
-	public void testNoUsersFound() {
-		assertEquals(0, mongoUserService.findAllUsers().size());
-		verify(db, times(1)).findAllUsers();
-	}
-	
-	@Test
-	public void testOneUserFound() {
-		mongoUserService.createUser(createTestUser("user1"));
-		assertEquals(1, mongoUserService.findAllUsers().size());
-		verify(db, times(1)).findAllUsers();
-	}
-	
-	@Test
-	public void testMoreUsersFound() {
-		assertEquals(0, mongoUserService.findAllUsers().size());
-		verify(db, times(1)).findAllUsers();
-
-		mongoUserService.createUser(createTestUser("user1"));
-		assertEquals(1, mongoUserService.findAllUsers().size());
-		verify(db, times(2)).findAllUsers();
-
-		mongoUserService.createUser(createTestUser("user2"));
-		assertEquals(2, mongoUserService.findAllUsers().size());
-		verify(db, times(3)).findAllUsers();
-
-		mongoUserService.createUser(createTestUser("user3"));
-		assertEquals(3, mongoUserService.findAllUsers().size());
-		verify(db, times(4)).findAllUsers();
-	}
-	
-	private User createTestUser(String username) {
-		return new User(username);
+	private User createTestUser(String username, String password) {
+		return new User(username, password);
 	}
 
 }

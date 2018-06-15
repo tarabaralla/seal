@@ -18,8 +18,8 @@ public class LeafRoleTest {
 	
 	@Before
 	public void setUp() {
-		role = new LeafRole();
-		son = new CompositeRole();
+		role = new LeafRole("role");
+		son = new CompositeRole("son");
 	}
 
 	@Test

@@ -5,6 +5,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+
+@Entity
+@DiscriminatorValue(value = "composite")
 public class CompositeRole extends Role {
 
 	private Set<Role> subRoles;
@@ -14,8 +19,8 @@ public class CompositeRole extends Role {
 		subRoles = new HashSet<>();
 	}
 
-	public CompositeRole(String uuid) {
-		super(uuid);
+	public CompositeRole(String name) {
+		super(name);
 		subRoles = new HashSet<>();
 	}
 

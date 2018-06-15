@@ -3,14 +3,19 @@ package clast.seal.core.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+
+@Entity
+@DiscriminatorValue(value = "leaf")
 public class LeafRole extends Role {
 	
 	public LeafRole() {
 		super();
 	}
-
-	public LeafRole(String uuid) {
-		super(uuid);
+	
+	public LeafRole(String name) {
+		super(name);
 	}
 	
 	@Override

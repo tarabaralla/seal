@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.UUID;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,20 +27,21 @@ public class UserTest {
 	
 	@Before
 	public void setUp() {
-		user = new User( UUID.randomUUID().toString() );
-		cr1 = new CompositeRole( UUID.randomUUID().toString() );
-		cr2 = new CompositeRole( UUID.randomUUID().toString() );
-		cr3 = new CompositeRole( UUID.randomUUID().toString() );
-		lr1 = new LeafRole( UUID.randomUUID().toString() );
-		lr2 = new LeafRole( UUID.randomUUID().toString() );
+		user = new User("usrUsername", "usrPassword");
+		cr1 = new CompositeRole("cr1");
+		cr2 = new CompositeRole("cr2");
+		cr3 = new CompositeRole("cr3");
+		lr1 = new LeafRole("lr1");
+		lr2 = new LeafRole("lr2");
 	}
 
 	@Test
 	public void testEqualUsers() {
 		// @formatter:off
 		EqualsVerifier.forClass(User.class)
-						.withOnlyTheseFields("uuid")
-						.withPrefabValues(Role.class, new LeafRole("r1"), new LeafRole("r2"))
+						.withOnlyTheseFields("id","username")
+						.withPrefabValues(User.class, createTestUser(null, "usrUsername1", "usrPassword1", "usrName1", "usrLastname1", "usrEmail1", "usrPhone1"), createTestUser("usr2", null, "usrPassword2", "usrName2", "usrLastname2", "usrEmail2", "usrPhone2"))
+						.withPrefabValues(Role.class, createTestLeafRole(null, "leafRole1"), createTestLeafRole("lr1", null))
 						.suppress(Warning.NONFINAL_FIELDS)
 						.verify();
 		// @formatter:on
@@ -50,8 +49,8 @@ public class UserTest {
 	
 	@Test
 	public void testUserFields() {
-		User user = createTestUser(1l,"uuid1","usrUsername", "usrPassword", "usrName", "usrLastname", "usrEmail", "usrPhone");
-		verifyUser(1l, "uuid1", user, "usrUsername", "usrPassword", "usrName", "usrLastname", "usrEmail", "usrPhone");
+		User user = createTestUser("usr1", "usrUsername", "usrPassword", "usrName", "usrLastname", "usrEmail", "usrPhone");
+		verifyUser(user, "usr1", "usrUsername", "usrPassword", "usrName", "usrLastname", "usrEmail", "usrPhone");
 	}
 	
 	@Test
@@ -130,6 +129,20 @@ public class UserTest {
 	}
 	
 	@Test
+	public void testHasDirectRole() {
+		user.addRole(lr1);
+		user.addRole(cr1);
+		cr1.addSubRole(cr2);
+		cr1.addSubRole(cr3);
+		cr3.addSubRole(lr2);
+		assertTrue(user.hasDirectRole(lr1));
+		assertTrue(user.hasDirectRole(cr1));
+		assertFalse(user.hasDirectRole(cr2));
+		assertFalse(user.hasDirectRole(cr3));
+		assertFalse(user.hasDirectRole(lr2));
+	}
+	
+	@Test
 	public void testGetDirectRoles() {
 		user.addRole(lr1);
 		user.addRole(cr1);
@@ -159,10 +172,9 @@ public class UserTest {
 		assertTrue( user.hasRole(lr2));
 	}
 	
-	private User createTestUser(Long id, String uuid, String username, String password, String name, String lastname, String email, String phone) {
+	private User createTestUser(String id, String username, String password, String name, String lastname, String email, String phone) {
 		User user = new User();
 		user.setId(id);
-		user.setUuid(uuid);
 		user.setUsername(username);
 		user.setPassword(password);
 		user.setName(name);
@@ -172,9 +184,8 @@ public class UserTest {
 		return user;
 	}
 	
-	private void verifyUser(Long id, String uuid, User user, String username, String password, String name, String lastname, String email, String phone) {
+	private void verifyUser(User user, String id, String username, String password, String name, String lastname, String email, String phone) {
 		assertEquals(id, user.getId());
-		assertEquals(uuid, user.getUuid());
 		assertEquals(username, user.getUsername());
 		assertEquals(username, user.getUsername());
 		assertEquals(password, user.getPassword());
@@ -182,6 +193,13 @@ public class UserTest {
 		assertEquals(lastname, user.getLastname());
 		assertEquals(email, user.getEmail());
 		assertEquals(phone, user.getPhone());
+	}
+	
+	private Role createTestLeafRole(String id, String name) {
+		Role role = new LeafRole();
+		role.setId(id);
+		role.setName(name);
+		return role;
 	}
 
 }

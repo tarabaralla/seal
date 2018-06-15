@@ -16,6 +16,16 @@
 
 	<dependencies>
 
+		<!-- Logs -->
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+
+
+
 		<!-- Testing -->
 
 		<dependency>
@@ -43,6 +53,14 @@
 			<groupId>org.jboss.weld.se</groupId>
 			<artifactId>weld-se-core</artifactId>
 			<version>3.0.4.Final</version>
+		</dependency>
+
+		<!-- Mongo + Kundera -->
+
+		<dependency>
+			<groupId>com.impetus.kundera.client</groupId>
+			<artifactId>kundera-mongo</artifactId>
+			<version>3.13</version>
 		</dependency>
 
 	</dependencies>
