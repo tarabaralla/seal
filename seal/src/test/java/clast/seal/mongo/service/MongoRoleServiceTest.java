@@ -1,6 +1,10 @@
 package clast.seal.mongo.service;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -65,7 +69,7 @@ public class MongoRoleServiceTest {
 	}
 	
 	@Test
-	public void CreateRoleWithOccupiedName() {
+	public void testCreateRoleWithOccupiedName() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Cannot create role: name already assigned to another role.");
 		
@@ -74,6 +78,27 @@ public class MongoRoleServiceTest {
 		
 		Role role2 = createTestRole("role1");
 		mongoRoleService.createRole(role2);
+	}
+	
+	@Test
+	public void testFindAllRoles() {
+		
+		assertEquals(0, mongoRoleService.findAllRoles().size());
+		
+		mongoRoleService.createRole( createTestRole("role1") );
+		Set<Role> roles = mongoRoleService.findAllRoles();
+		assertEquals(1, roles.size());
+		assertEquals("role1", roles.iterator().next().getName());
+		
+		mongoRoleService.createRole( createTestRole("role2") );
+		roles = mongoRoleService.findAllRoles();
+		Set<String> roleNames = roles.stream()
+										.map( r -> r.getName() )
+										.collect( Collectors.toSet() );
+		assertEquals(2, roles.size());
+		assertTrue(roleNames.contains("role1"));
+		assertTrue(roleNames.contains("role2"));
+		
 	}
 	
 	private Role createTestRole(String name) {
