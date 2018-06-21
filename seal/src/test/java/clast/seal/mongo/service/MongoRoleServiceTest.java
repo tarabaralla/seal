@@ -1,6 +1,7 @@
 package clast.seal.mongo.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.junit.runner.RunWith;
 
 import com.impetus.kundera.KunderaException;
 
+import clast.seal.core.model.CompositeRole;
 import clast.seal.core.model.LeafRole;
 import clast.seal.core.model.Role;
 import clast.seal.core.service.WeldJUnit4Runner;
@@ -47,7 +49,44 @@ public class MongoRoleServiceTest {
 	
 	@Test
 	public void testCreateRole() {
-		assertTrue( mongoRoleService.createRole(new LeafRole("lr")) );
+		
+		Role lr1 = new LeafRole("lr1");
+		
+		Role lr2 = new LeafRole("lr2");
+		lr2.addManagedRole(lr1);
+		
+		Role cr1 = new CompositeRole("cr1");
+		cr1.addSubRole(lr2);
+		
+		Role role = new CompositeRole("role1");
+		role.addSubRole(cr1);
+		role.addSubRole(lr1);
+		role.addManagedRole(lr2);
+		
+		assertTrue( mongoRoleService.createRole(role) );
+		
+		assertNotNull( mongoRoleService.findByName("lr1") );
+		
+		Role role1 = mongoRoleService.findByName("lr2");
+		assertNotNull(role1);
+		assertEquals("lr1", role1.getDirectManagedRoles().iterator().next().getName());
+		
+		Role role2 = mongoRoleService.findByName("cr1");
+		assertNotNull(role2);
+		assertEquals(1, role2.getDirectSubRoles().size());
+		assertEquals(1, role2.getAllSubRoles().size());
+		assertEquals("lr2", role2.getDirectSubRoles().iterator().next().getName());
+		assertEquals(0, role2.getDirectManagedRoles().size());
+		assertEquals(1, role2.getAllManagedRoles().size());
+		assertEquals("lr1", role2.getAllManagedRoles().iterator().next().getName());
+		
+		Role role3 = mongoRoleService.findByName("role1");
+		assertNotNull(role3);
+		assertEquals(2, role3.getDirectSubRoles().size());
+		assertEquals(3, role3.getAllSubRoles().size());
+		assertEquals(1, role3.getDirectManagedRoles().size());
+		assertEquals(2, role3.getAllManagedRoles().size());
+		
 	}
 	
 	@Test
@@ -69,6 +108,33 @@ public class MongoRoleServiceTest {
 	}
 	
 	@Test
+	public void testDeleteRole() {
+		Role role = createTestRole("role1");
+		mongoRoleService.createRole(role);
+		
+		assertTrue( mongoRoleService.deleteRole(role));
+	}
+	
+	@Test
+	public void testDeleteRoleWithoutId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Cannot delete role: role id cannot be null.");
+		
+		Role role = createTestRole("role1");
+		mongoRoleService.deleteRole(role);
+	}
+	
+	@Test
+	public void testDeleteRoleNotPersisted() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Cannot delete role: role with id 123 not found.");
+		
+		Role role = createTestRole("role1");
+		role.setId("123");
+		mongoRoleService.deleteRole(role);
+	}
+	
+	@Test
 	public void testCreateRoleWithOccupiedName() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Cannot create role: name already assigned to another role.");
@@ -83,15 +149,15 @@ public class MongoRoleServiceTest {
 	@Test
 	public void testFindAllRoles() {
 		
-		assertEquals(0, mongoRoleService.findAllRoles().size());
+		assertEquals(0, mongoRoleService.findAll().size());
 		
 		mongoRoleService.createRole( createTestRole("role1") );
-		Set<Role> roles = mongoRoleService.findAllRoles();
+		Set<Role> roles = mongoRoleService.findAll();
 		assertEquals(1, roles.size());
 		assertEquals("role1", roles.iterator().next().getName());
 		
 		mongoRoleService.createRole( createTestRole("role2") );
-		roles = mongoRoleService.findAllRoles();
+		roles = mongoRoleService.findAll();
 		Set<String> roleNames = roles.stream()
 										.map( r -> r.getName() )
 										.collect( Collectors.toSet() );

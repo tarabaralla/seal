@@ -9,6 +9,10 @@ public interface RoleService extends Service {
 
 	public abstract boolean createRole(Role role);
 
-	public abstract Set<Role> findAllRoles();
+	public abstract boolean deleteRole(Role role);
+	
+	public abstract Set<Role> findAll();
+
+	public abstract Role findByName(String name);
 
 }

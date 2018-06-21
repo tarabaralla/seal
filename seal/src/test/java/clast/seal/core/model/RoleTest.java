@@ -89,6 +89,14 @@ public class RoleTest {
 		assertEquals(2, role.getAllManagedRoles().size());
 	}
 	
+	@Test
+	public void testAddPippo() {
+		role.addSubRole(cr1);
+		role.addSubRole(cr2);
+		cr1.addSubRole(cr2);
+		assertTrue(true);
+	}
+	
 	private Role createTestCompositeRole(String id, String name) {
 		Role role = new CompositeRole();
 		role.setId(id);

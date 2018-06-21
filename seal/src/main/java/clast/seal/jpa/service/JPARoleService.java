@@ -16,7 +16,19 @@ public class JPARoleService implements RoleService {
 	}
 	
 	@Override
-	public Set<Role> findAllRoles() {
+	public boolean deleteRole(Role role) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	@Override
+	public Set<Role> findAll() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public Role findByName(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}

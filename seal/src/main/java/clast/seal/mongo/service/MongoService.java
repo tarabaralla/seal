@@ -6,8 +6,6 @@ import javax.persistence.Persistence;
 
 import org.apache.log4j.Logger;
 
-
-
 public abstract class MongoService {
 	
 	EntityManager em;
