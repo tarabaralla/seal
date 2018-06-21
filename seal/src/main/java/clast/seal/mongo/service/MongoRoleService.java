@@ -66,6 +66,7 @@ public class MongoRoleService extends MongoService implements RoleService {
 	
 	@Override
 	public Role findByName(String name) {
+		
 		try {
 			Query q = em.createQuery("select r from CompositeRole r where r.name = :name", CompositeRole.class);
 			q.setParameter("name", name);
