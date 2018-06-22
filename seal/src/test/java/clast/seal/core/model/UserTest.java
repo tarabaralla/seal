@@ -66,7 +66,7 @@ public class UserTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Passed role already assigned to this user");
 		user.addRole(cr1);
-		cr1.addSubRole(lr1);
+		cr1.checkSubRoleRelation(lr1);
 		user.addRole(lr1);
 	}
 	
@@ -75,9 +75,9 @@ public class UserTest {
 		user.addRole(lr1);
 		user.addRole(cr2);
 		user.addRole(lr2);
-		cr1.addSubRole(lr1);
-		cr1.addSubRole(cr3);
-		cr3.addSubRole(lr2);
+		cr1.checkSubRoleRelation(lr1);
+		cr1.checkSubRoleRelation(cr3);
+		cr3.checkSubRoleRelation(lr2);
 		
 		assertEquals(3, user.getDirectRoles().size());
 		assertEquals(3, user.getAllRoles().size());
@@ -91,7 +91,7 @@ public class UserTest {
 		user.addRole(cr1);
 		user.addRole(cr2);
 		user.addRole(lr2);
-		cr1.addSubRole(lr1);
+		cr1.checkSubRoleRelation(lr1);
 		assertTrue( user.removeRole(cr1));
 		assertTrue( user.removeRole(cr2));
 		assertTrue( user.removeRole(lr2));
@@ -103,7 +103,7 @@ public class UserTest {
 		expectedEx.expectMessage( "Role " + lr2.getName() + " to remove isn't assigned to user " + user.getName() );
 		user.addRole(cr1);
 		user.addRole(cr2);
-		cr1.addSubRole(lr1);
+		cr1.checkSubRoleRelation(lr1);
 		user.removeRole(lr2);
 	}
 	
@@ -113,7 +113,7 @@ public class UserTest {
 		expectedEx.expectMessage( "Only direct role can be removed from users. Role " + lr1.getName() + " is a sub-role for User " + user.getName() );
 		user.addRole(cr1);
 		user.addRole(cr2);
-		cr1.addSubRole(lr1);
+		cr1.checkSubRoleRelation(lr1);
 		user.removeRole(lr1);
 	}
 	
@@ -121,7 +121,7 @@ public class UserTest {
 	public void testHasRole() {
 		user.addRole(cr2);
 		user.addRole(cr1);
-		cr1.addSubRole(lr1);
+		cr1.checkSubRoleRelation(lr1);
 		assertTrue( user.hasRole(cr2));
 		assertTrue( user.hasRole(cr1));
 		assertTrue( user.hasRole(lr1));
@@ -132,9 +132,9 @@ public class UserTest {
 	public void testHasDirectRole() {
 		user.addRole(lr1);
 		user.addRole(cr1);
-		cr1.addSubRole(cr2);
-		cr1.addSubRole(cr3);
-		cr3.addSubRole(lr2);
+		cr1.checkSubRoleRelation(cr2);
+		cr1.checkSubRoleRelation(cr3);
+		cr3.checkSubRoleRelation(lr2);
 		assertTrue(user.hasDirectRole(lr1));
 		assertTrue(user.hasDirectRole(cr1));
 		assertFalse(user.hasDirectRole(cr2));
@@ -146,9 +146,9 @@ public class UserTest {
 	public void testGetDirectRoles() {
 		user.addRole(lr1);
 		user.addRole(cr1);
-		cr1.addSubRole(cr2);
-		cr1.addSubRole(cr3);
-		cr3.addSubRole(lr2);
+		cr1.checkSubRoleRelation(cr2);
+		cr1.checkSubRoleRelation(cr3);
+		cr3.checkSubRoleRelation(lr2);
 		assertEquals(2, user.getDirectRoles().size());
 		assertTrue( user.hasRole(lr1));
 		assertTrue( user.hasRole(cr1));
@@ -161,9 +161,9 @@ public class UserTest {
 	public void testGetAllRoles() {
 		user.addRole(lr1);
 		user.addRole(cr1);
-		cr1.addSubRole(cr2);
-		cr1.addSubRole(cr3);
-		cr3.addSubRole(lr2);
+		cr1.checkSubRoleRelation(cr2);
+		cr1.checkSubRoleRelation(cr3);
+		cr3.checkSubRoleRelation(lr2);
 		assertEquals(5, user.getAllRoles().size());
 		assertTrue( user.hasRole(lr1));
 		assertTrue( user.hasRole(cr1));

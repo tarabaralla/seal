@@ -56,11 +56,11 @@ public class MongoRoleServiceTest {
 		lr2.addManagedRole(lr1);
 		
 		Role cr1 = new CompositeRole("cr1");
-		cr1.addSubRole(lr2);
+		cr1.checkSubRoleRelation(lr2);
 		
 		Role role = new CompositeRole("role1");
-		role.addSubRole(cr1);
-		role.addSubRole(lr1);
+		role.checkSubRoleRelation(cr1);
+		role.checkSubRoleRelation(lr1);
 		role.addManagedRole(lr2);
 		
 		assertTrue( mongoRoleService.createRole(role) );

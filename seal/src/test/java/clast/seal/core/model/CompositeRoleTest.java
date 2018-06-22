@@ -34,11 +34,11 @@ public class CompositeRoleTest {
 	
 	@Test
 	public void testAddSubRole() {
-		role.addSubRole(cr1);
-		role.addSubRole(cr2);
-		cr1.addSubRole(cr3);
-		cr1.addSubRole(lr1);
-		cr3.addSubRole(lr2);
+		role.checkSubRoleRelation(cr1);
+		role.checkSubRoleRelation(cr2);
+		cr1.checkSubRoleRelation(cr3);
+		cr1.checkSubRoleRelation(lr1);
+		cr3.checkSubRoleRelation(lr2);
 		assertEquals(5, role.getAllSubRoles().size());
 	}
 
@@ -46,51 +46,51 @@ public class CompositeRoleTest {
 	public void testAddItself() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("A role cannot be sub-role of him self");
-		role.addSubRole(role);	
+		role.checkSubRoleRelation(role);	
 	}
 	
 	@Test
 	public void testAddAlreadyPresentSubRole() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("A role cannot add a sub-role that is already present in its sub-roles tree");
-		role.addSubRole(cr1);
-		role.addSubRole(cr1);
+		role.checkSubRoleRelation(cr1);
+		role.checkSubRoleRelation(cr1);
 	}
 	
 	@Test
 	public void testAddRoleAlreadyPresentInItsSubRolesTree() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("A role cannot add a sub-role that is already present in its sub-roles tree");
-		role.addSubRole(cr1);
-		cr1.addSubRole(lr1);
-		role.addSubRole(lr1);
+		role.checkSubRoleRelation(cr1);
+		cr1.checkSubRoleRelation(lr1);
+		role.checkSubRoleRelation(lr1);
 	}
 	
 	@Test
 	public void testAddRoleThatContainsSubRolesAlreadyPresentInItsSubRolesTree() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("A role cannot add a sub-role that has one or more sub-roles those are already present in its sub-roles tree");
-		role.addSubRole(cr1);
-		cr1.addSubRole(lr1);
-		cr3.addSubRole(lr1);
-		role.addSubRole(cr3);
+		role.checkSubRoleRelation(cr1);
+		cr1.checkSubRoleRelation(lr1);
+		cr3.checkSubRoleRelation(lr1);
+		role.checkSubRoleRelation(cr3);
 	}
 	
 	@Test
 	public void testAddParentRoleAsSubRole() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Cyclic relations between roles aren't admitted");
-		role.addSubRole(cr1);
-		cr1.addSubRole(cr2);
-		cr2.addSubRole(role);
+		role.checkSubRoleRelation(cr1);
+		cr1.checkSubRoleRelation(cr2);
+		cr2.checkSubRoleRelation(role);
 	}
 	
 	@Test
 	public void testRemoveSubRole() {
-		role.addSubRole(cr1);
-		role.addSubRole(lr2);
-		cr1.addSubRole(lr1);
-		cr1.addSubRole(cr2);
+		role.checkSubRoleRelation(cr1);
+		role.checkSubRoleRelation(lr2);
+		cr1.checkSubRoleRelation(lr1);
+		cr1.checkSubRoleRelation(cr2);
 		
 		assertEquals(4, role.getAllSubRoles().size());
 
@@ -106,9 +106,9 @@ public class CompositeRoleTest {
 	
 	@Test
 	public void testHasSubRole() {
-		role.addSubRole(cr1);
-		cr1.addSubRole(lr1);
-		cr1.addSubRole(cr2);
+		role.checkSubRoleRelation(cr1);
+		cr1.checkSubRoleRelation(lr1);
+		cr1.checkSubRoleRelation(cr2);
 		
 		assertTrue( role.hasSubRole(cr2) );
 		assertFalse( role.hasSubRole(cr3) );
@@ -117,12 +117,12 @@ public class CompositeRoleTest {
 	@Test
 	public void testGetDirectSubRoles() {
 		
-		role.addSubRole(cr1);
+		role.checkSubRoleRelation(cr1);
 		assertEquals(1, role.getDirectSubRoles().size());
 		assertTrue(role.hasSubRole(cr1));
 		assertEquals("role", role.getAllSubRoles().iterator().next().getName());
 		
-		cr1.addSubRole(lr1);
+		cr1.checkSubRoleRelation(lr1);
 		
 		assertEquals(1, cr1.getDirectSubRoles().size());
 		assertTrue(cr1.hasSubRole(lr1));
@@ -135,12 +135,12 @@ public class CompositeRoleTest {
 	@Test
 	public void testGetAllSubRoles() {
 
-		role.addSubRole(cr1);
+		role.checkSubRoleRelation(cr1);
 		assertEquals(1, role.getAllSubRoles().size());
 		assertTrue(role.hasSubRole(cr1));
 		assertEquals("role", role.getAllSubRoles().iterator().next().getName());
 
-		cr1.addSubRole(lr1);
+		cr1.checkSubRoleRelation(lr1);
 
 		assertEquals(1, cr1.getAllSubRoles().size());
 		assertTrue(cr1.hasSubRole(lr1));

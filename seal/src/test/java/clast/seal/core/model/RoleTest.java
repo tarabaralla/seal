@@ -76,7 +76,7 @@ public class RoleTest {
 	@Test
 	public void testGetDirectManagedRole() {
 		role.addManagedRole(role);
-		role.addSubRole(cr1);
+		role.checkSubRoleRelation(cr1);
 		cr1.addManagedRole(cr2);
 		assertEquals(1, role.getDirectManagedRoles().size());
 	}
@@ -84,16 +84,16 @@ public class RoleTest {
 	@Test
 	public void testgetAllManagedRole() {
 		role.addManagedRole(role);
-		role.addSubRole(cr1);
+		role.checkSubRoleRelation(cr1);
 		cr1.addManagedRole(cr2);
 		assertEquals(2, role.getAllManagedRoles().size());
 	}
 	
 	@Test
 	public void testAddPippo() {
-		role.addSubRole(cr1);
-		role.addSubRole(cr2);
-		cr1.addSubRole(cr2);
+		role.checkSubRoleRelation(cr1);
+		role.checkSubRoleRelation(cr2);
+		cr1.checkSubRoleRelation(cr2);
 		assertTrue(true);
 	}
 	

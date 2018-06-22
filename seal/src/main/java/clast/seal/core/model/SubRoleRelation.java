@@ -16,7 +16,7 @@ import javax.validation.constraints.NotNull;
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(discriminatorType=DiscriminatorType.STRING, name="type")
 @Table(name = "sub_roles")
-public abstract class SubRole {
+public abstract class SubRoleRelation {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -30,9 +30,9 @@ public abstract class SubRole {
 	@Column( name = "sub_role_id" )
 	private String subRoleId;
 	
-	public SubRole() {}
+	public SubRoleRelation() {}
 
-	public SubRole(String roleId, String subRoleId) {
+	public SubRoleRelation(String roleId, String subRoleId) {
 		this.roleId = roleId;
 		this.subRoleId = subRoleId;
 	}

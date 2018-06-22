@@ -26,7 +26,7 @@ public class LeafRoleTest {
 	public void testAddSubRole() {
 		expectedEx.expect(UnsupportedOperationException.class);
 		expectedEx.expectMessage("Only CompositeRole can manage sub-roles");
-		role.addSubRole( son );
+		role.checkSubRoleRelation( son );
 	}
 	
 	@Test
@@ -42,7 +42,7 @@ public class LeafRoleTest {
 		expectedEx.expect(UnsupportedOperationException.class);
 		expectedEx.expectMessage("Only CompositeRole can manage sub-roles");
 		assertFalse( role.hasSubRole(role));
-		role.addSubRole( son );
+		role.checkSubRoleRelation( son );
 		assertFalse( role.hasSubRole(role));
 	}
 	

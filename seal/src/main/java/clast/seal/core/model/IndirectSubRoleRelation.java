@@ -5,13 +5,13 @@ import javax.persistence.Entity;
 
 @Entity
 @DiscriminatorValue(value = "indirect")
-public class IndirectSubRole extends SubRole {
+public class IndirectSubRoleRelation extends SubRoleRelation {
 	
-	public IndirectSubRole() {
+	public IndirectSubRoleRelation() {
 		super();
 	}
 
-	public IndirectSubRole(String roleId, String subRoleId) {
+	public IndirectSubRoleRelation(String roleId, String subRoleId) {
 		super(roleId, subRoleId);
 	}
 	
