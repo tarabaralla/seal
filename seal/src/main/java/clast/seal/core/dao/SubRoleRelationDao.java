@@ -17,45 +17,45 @@ public class SubRoleRelationDao extends BaseDao {
 		super();
 	}
 	
-	public boolean createSubRoleRelation(DirectSubRoleRelation subRole) {
+	public boolean createSubRoleRelation(DirectSubRoleRelation subRoleRelation) {
 		
 		try {
 			
-			checkSubRoleRelation(subRole);
+			checkSubRoleRelation(subRoleRelation);
 				
 			Set<IndirectSubRoleRelation> indirectSubRoleRelations = new HashSet<>();
 			
-			Set<String> roleAncestorsIds = findSubRoleRelations(null, null, subRole.getRoleId())
+			Set<String> roleAncestorsIds = findSubRoleRelations(null, null, subRoleRelation.getRoleId())
 					.stream()
-					.map( sr -> sr.getRoleId())
+					.map( srr -> srr.getRoleId())
 					.collect(Collectors.toSet());
 			
-			Set<String> subRoleDescendantsIds = findSubRoleRelations(null, subRole.getSubRoleId(), null)
+			Set<String> subRoleDescendantsIds = findSubRoleRelations(null, subRoleRelation.getSubRoleId(), null)
 					.stream()
-					.map( sr -> sr.getSubRoleId())
+					.map( srr -> srr.getSubRoleId())
 					.collect(Collectors.toSet());
 			
 			for(String roleAncestorId : roleAncestorsIds) {
-				IndirectSubRoleRelation currentIndSubRole = new IndirectSubRoleRelation(roleAncestorId, subRole.getSubRoleId());
-				checkSubRoleRelation(currentIndSubRole);
-				indirectSubRoleRelations.add(currentIndSubRole);
+				IndirectSubRoleRelation currentIndSubRoleRelation = new IndirectSubRoleRelation(roleAncestorId, subRoleRelation.getSubRoleId());
+				checkSubRoleRelation(currentIndSubRoleRelation);
+				indirectSubRoleRelations.add(currentIndSubRoleRelation);
 			}
 			
 			for( String subRoleDescendantId : subRoleDescendantsIds ) {
-				IndirectSubRoleRelation currentIndSubRole = new IndirectSubRoleRelation(subRole.getRoleId(), subRoleDescendantId);
-				checkSubRoleRelation(currentIndSubRole);
-				indirectSubRoleRelations.add(currentIndSubRole);
+				IndirectSubRoleRelation currentIndSubRoleRelation = new IndirectSubRoleRelation(subRoleRelation.getRoleId(), subRoleDescendantId);
+				checkSubRoleRelation(currentIndSubRoleRelation);
+				indirectSubRoleRelations.add(currentIndSubRoleRelation);
 			}
 			
 			for( String roleAncestorId : roleAncestorsIds ) {
 				for( String subRoleDescendantId : subRoleDescendantsIds ) {
-					IndirectSubRoleRelation currentIndSubRole = new IndirectSubRoleRelation(roleAncestorId, subRoleDescendantId);
-					checkSubRoleRelation(currentIndSubRole);
-					indirectSubRoleRelations.add(currentIndSubRole);
+					IndirectSubRoleRelation currentIndSubRoleRelation = new IndirectSubRoleRelation(roleAncestorId, subRoleDescendantId);
+					checkSubRoleRelation(currentIndSubRoleRelation);
+					indirectSubRoleRelations.add(currentIndSubRoleRelation);
 				}
 			}
 			
-			em.persist(subRole);
+			em.persist(subRoleRelation);
 			for( IndirectSubRoleRelation indirectSubRoleRelation : indirectSubRoleRelations ) {
 				em.persist(indirectSubRoleRelation);
 			}
@@ -67,30 +67,63 @@ public class SubRoleRelationDao extends BaseDao {
 		}
 		
 	}
-
-	void checkSubRoleRelation(SubRoleRelation sr) {
+	
+	public boolean deleteSubRoleRelation(DirectSubRoleRelation subRoleRelation) {
 		
-		if( sr == null || sr.getRoleId() == null || sr.getSubRoleId() == null ) {
+		if( findSubRoleRelations(SubRoleRelationType.DIRECT, subRoleRelation.getRoleId(), subRoleRelation.getSubRoleId()).isEmpty() ) {
+			throw new IllegalArgumentException("Unable to delete subRole relation: Direct relation between Role: " + subRoleRelation.getRoleId() + "and SubRole:" + subRoleRelation.getSubRoleId() + " not exist.");
+		}
+		
+		Set<SubRoleRelation> subRoleAncestorsRelations = findSubRoleRelations(null, null, subRoleRelation.getSubRoleId());
+		
+		Set<String> subRoleDescendantsIds = findSubRoleRelations(null, subRoleRelation.getSubRoleId(), null)
+				.stream()
+				.map( srr -> srr.getSubRoleId())
+				.collect(Collectors.toSet());
+		
+		Set<SubRoleRelation> toDeleteRelations = new HashSet<>();
+		for( SubRoleRelation subRoleAncestorRelation : subRoleAncestorsRelations ) {
+			for( String subRoleDescendantId : subRoleDescendantsIds ) {
+				toDeleteRelations.addAll( findSubRoleRelations(SubRoleRelationType.INDIRECT, subRoleAncestorRelation.getRoleId(), subRoleDescendantId));
+			}
+		}
+		
+		em.getTransaction().begin();
+		for( SubRoleRelation currentSubRoleRelation : subRoleAncestorsRelations ) {
+			em.remove(currentSubRoleRelation);
+		}
+		for( SubRoleRelation currentSubRoleRelation : toDeleteRelations ) {
+			em.remove(currentSubRoleRelation);
+		}
+		em.getTransaction().commit();
+		
+		return true;
+		
+	}
+
+	void checkSubRoleRelation(SubRoleRelation srr) {
+		
+		if( srr == null || srr.getRoleId() == null || srr.getSubRoleId() == null ) {
 			throw new IllegalArgumentException("IDs of role and subRole cannot be null.");
 		}
 		
-		if( sr.getId() != null ) {
+		if( srr.getId() != null ) {
 			throw new IllegalArgumentException("It already has an ID.");
 		}
 		
-		if( sr.getRoleId().equals(sr.getSubRoleId()) ) {
+		if( srr.getRoleId().equals(srr.getSubRoleId()) ) {
 			throw new IllegalArgumentException("A role cannot be sub-role of itself.");
 		}
 		
-		if( sr instanceof DirectSubRoleRelation && !findSubRoleRelations(null, null, sr.getSubRoleId()).isEmpty() ) {
-			throw new IllegalArgumentException("SubRoleRelation: " + sr.getSubRoleId() + " is already subRole of another role.");
+		if( srr instanceof DirectSubRoleRelation && !findSubRoleRelations(null, null, srr.getSubRoleId()).isEmpty() ) {
+			throw new IllegalArgumentException("SubRoleRelation: " + srr.getSubRoleId() + " is already subRole of another role.");
 		}
 		
-		if( sr instanceof IndirectSubRoleRelation && !findSubRoleRelations(null, sr.getRoleId(), sr.getSubRoleId()).isEmpty() ) {
-			throw new IllegalArgumentException("A relation between role: " + sr.getRoleId() + " and subRole: " + sr.getSubRoleId() + " already exist.");
+		if( srr instanceof IndirectSubRoleRelation && !findSubRoleRelations(null, srr.getRoleId(), srr.getSubRoleId()).isEmpty() ) {
+			throw new IllegalArgumentException("A relation between role: " + srr.getRoleId() + " and subRole: " + srr.getSubRoleId() + " already exist.");
 		}
 		
-		if( !findSubRoleRelations(null, sr.getSubRoleId(), sr.getRoleId()).isEmpty() ) {
+		if( !findSubRoleRelations(null, srr.getSubRoleId(), srr.getRoleId()).isEmpty() ) {
 			throw new IllegalArgumentException("Cyclic relations are not allowed.");
 		}
 

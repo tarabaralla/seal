@@ -6,12 +6,18 @@ import java.util.Set;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
+import clast.seal.core.model.DirectSubRoleRelation;
 import clast.seal.core.model.Role;
+import clast.seal.core.model.SubRoleRelation;
+import clast.seal.core.model.SubRoleRelationType;
 
 public class RoleDao extends BaseDao{
 	
+	private SubRoleRelationDao subRoleRelationDao;
+	
 	public RoleDao() {
 		super();
+		subRoleRelationDao = new SubRoleRelationDao();
 	}
 
 	public boolean createRole(Role role) {
@@ -90,11 +96,7 @@ public class RoleDao extends BaseDao{
 			throw new IllegalArgumentException("Unable to find role: role ID cannot be null.");
 		}
 		
-		try {
-			return em.find(Role.class, id);
-		}catch (Exception e) {
-			return null;
-		}
+		return em.find(Role.class, id);
 	}
 
 	public Set<Role> findAllRoles() {
@@ -103,7 +105,44 @@ public class RoleDao extends BaseDao{
 	}
 
 	public boolean addSubRole(Role role, Role subRole) {
-		return true;
+		return subRoleRelationDao.createSubRoleRelation( new DirectSubRoleRelation(role.getId(), subRole.getId()) );
+	}
+	
+	public boolean removeSubRole(Role role, Role subRole) {
+		return subRoleRelationDao.deleteSubRoleRelation( new DirectSubRoleRelation( role.getId(), subRole.getId()) );
+	}
+	
+	public Set<Role> findAllSubRoles(Role role) {
+		return findSubRoles(null, role);
+	}
+	
+	public Set<Role> findDirectSubRoles(Role role) {
+		return findSubRoles(SubRoleRelationType.DIRECT, role);
+	}
+	
+	public Set<Role> findIndirectSubRoles(Role role) {
+		return findSubRoles(SubRoleRelationType.INDIRECT, role);
+	}
+	
+	private Set<Role> findSubRoles(SubRoleRelationType subRoleRelationType, Role role) {
+		Set<SubRoleRelation> subRoleRelations = subRoleRelationDao.findSubRoleRelations(subRoleRelationType, role.getId(), null);
+		Set<Role> subRoles = new HashSet<>();
+		for( SubRoleRelation subRoleRelation : subRoleRelations ) {
+			subRoles.add( findRoleById(subRoleRelation.getSubRoleId()) );
+		}
+		return subRoles;
+	}
+	
+	public boolean hasSubRole(Role role, Role subRole) {
+		return subRoleRelationDao.findSubRoleRelations(null, role.getId(), subRole.getId()).isEmpty();
+	}
+	
+	public boolean hasDirectSubRole(Role role, Role subRole) {
+		return subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, role.getId(), subRole.getId()).isEmpty();
+	}
+	
+	public boolean hasIndirectSubRole(Role role, Role subRole) {
+		return subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, role.getId(), subRole.getId()).isEmpty();
 	}
 
 }

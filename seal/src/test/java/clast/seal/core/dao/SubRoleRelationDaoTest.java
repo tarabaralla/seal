@@ -170,6 +170,139 @@ public class SubRoleRelationDaoTest {
 	}
 	
 	@Test
+	public void testDeleteSubRoleRelation1() {
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		
+		subRoleRelationDao.deleteSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		
+		Set<String> subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(5, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r2.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r4.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r5.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r6.getId())) );
+		assertTrue( subRoles.contains( stringOf(r4.getId(), r7.getId())) );
+		
+		subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(5, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r4.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r5.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r6.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r7.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r7.getId())) );
+	}
+	
+	@Test
+	public void testDeleteSubRoleRelation2() {
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		
+		subRoleRelationDao.deleteSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
+		
+		Set<String> subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(5, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r3.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r4.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r5.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r6.getId())) );
+		assertTrue( subRoles.contains( stringOf(r4.getId(), r7.getId())) );
+		
+		subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(1, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r7.getId())) );
+	}
+	
+	@Test
+	public void testDeleteSubRoleRelation3() {
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		
+		subRoleRelationDao.deleteSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		
+		Set<String> subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(5, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r2.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r3.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r5.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r6.getId())) );
+		assertTrue( subRoles.contains( stringOf(r4.getId(), r7.getId())) );
+		
+		subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(2, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r5.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r6.getId())) );
+	}
+	
+	@Test
+	public void testDeleteSubRoleRelation4() {
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		
+		subRoleRelationDao.deleteSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		
+		Set<String> subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(5, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r2.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r3.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r4.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r5.getId())) );
+		assertTrue( subRoles.contains( stringOf(r2.getId(), r6.getId())) );
+		
+		subRoles = subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, null, null).stream().map( sr -> sr.toString() ).collect(Collectors.toSet());
+		assertEquals(3, subRoles.size());
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r4.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r5.getId())) );
+		assertTrue( subRoles.contains( stringOf(r1.getId(), r6.getId())) );
+	}
+	
+	@Test
+	public void testDeleteUnexistingSubRoleRelation1() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete subRole relation: Direct relation between Role: " + r3.getId() + "and SubRole:" + r7.getId() + " not exist.");
+		
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		
+		subRoleRelationDao.deleteSubRoleRelation(createTestDirectSubRoleRelation(r3.getId(), r7.getId()));
+	}
+	
+	@Test
+	public void testDeleteUnexistingSubRoleRelation2() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete subRole relation: Direct relation between Role: " + r1.getId() + "and SubRole:" + r4.getId() + " not exist.");
+		
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		
+		subRoleRelationDao.deleteSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r4.getId()));
+	}
+	
+	@Test
 	public void testFindSubRoleRelations() {
 		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
 		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
@@ -255,12 +388,12 @@ public class SubRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to find subRole relations: At least one search field must be specified.");
 		
-		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
-		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
-		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
-		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
-		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
 		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r4.getId(), r7.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r6.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r5.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r2.getId(), r4.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r3.getId()));
+		subRoleRelationDao.createSubRoleRelation(createTestDirectSubRoleRelation(r1.getId(), r2.getId()));
 		
 		subRoleRelationDao.findSubRoleRelations(null, null, null);		
 	}

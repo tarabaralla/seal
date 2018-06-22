@@ -178,15 +178,6 @@ public class RoleDaoTest {
 		assertTrue( roleNames.contains("r3"));
 		
 	}
-	
-	@Test
-	public void testAddSubRole() {
-		assertTrue(roleDao.addSubRole(r1, r2));
-		assertTrue(roleDao.addSubRole(r1, r3));
-		assertTrue(roleDao.addSubRole(r2, r4));
-		assertTrue(roleDao.addSubRole(r2, r5));
-		assertTrue(roleDao.addSubRole(r2, r6));
-		assertTrue(roleDao.addSubRole(r4, r7));
-	}
 
+	//TODO aggiungere test relativi ai sotto ruoli
 }
