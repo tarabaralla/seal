@@ -134,15 +134,15 @@ public class RoleDao extends BaseDao{
 	}
 	
 	public boolean hasSubRole(Role role, Role subRole) {
-		return subRoleRelationDao.findSubRoleRelations(null, role.getId(), subRole.getId()).isEmpty();
+		return !subRoleRelationDao.findSubRoleRelations(null, role.getId(), subRole.getId()).isEmpty();
 	}
 	
 	public boolean hasDirectSubRole(Role role, Role subRole) {
-		return subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, role.getId(), subRole.getId()).isEmpty();
+		return !subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, role.getId(), subRole.getId()).isEmpty();
 	}
 	
 	public boolean hasIndirectSubRole(Role role, Role subRole) {
-		return subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, role.getId(), subRole.getId()).isEmpty();
+		return !subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, role.getId(), subRole.getId()).isEmpty();
 	}
 
 }

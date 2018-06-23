@@ -1,6 +1,7 @@
 package clast.seal.core.dao;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -24,8 +25,6 @@ public class RoleDaoTest {
 	private Role r3;
 	private Role r4;
 	private Role r5;
-	private Role r6;
-	private Role r7;
 	
 	@Rule
 	public ExpectedException expectedEx = ExpectedException.none();
@@ -38,8 +37,6 @@ public class RoleDaoTest {
 		r3 = new Role("role3");
 		r4 = new Role("role4");
 		r5 = new Role("role5");
-		r6 = new Role("role6");
-		r7 = new Role("role7");
 	}
 
 	@Test
@@ -179,5 +176,111 @@ public class RoleDaoTest {
 		
 	}
 
-	//TODO aggiungere test relativi ai sotto ruoli
+	@Test
+	public void testAddSubRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		assertTrue(roleDao.addSubRole(r1, r2));
+	}
+	
+	@Test
+	public void testRemoveSubRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.addSubRole(r1, r2);
+		assertTrue(roleDao.removeSubRole(r1, r2));
+	}
+	
+	@Test
+	public void testFindAllSubroles() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
+		Set<String> subRolesNames = roleDao.findAllSubRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
+		assertEquals(3, subRolesNames.size());
+		assertTrue(subRolesNames.contains(r2.getName()));
+		assertTrue(subRolesNames.contains(r3.getName()));
+		assertTrue(subRolesNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testFindDirectSubRoles() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
+		Set<String> subRolesNames = roleDao.findDirectSubRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
+		assertEquals(2, subRolesNames.size());
+		assertTrue(subRolesNames.contains(r2.getName()));
+		assertTrue(subRolesNames.contains(r3.getName()));
+	}
+	
+	@Test
+	public void testFindIndirectSubRoles() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
+		Set<String> subRolesNames = roleDao.findIndirectSubRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
+		assertEquals(1, subRolesNames.size());
+		assertTrue(subRolesNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testHasSubRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.createRole(r5);
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
+		assertTrue(roleDao.hasSubRole(r1, r2));
+		assertTrue(roleDao.hasSubRole(r1, r3));
+		assertTrue(roleDao.hasSubRole(r1, r4));
+		assertFalse(roleDao.hasSubRole(r1, r5));
+	}
+	
+	@Test
+	public void testHasDirectSubRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.createRole(r5);
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
+		assertTrue(roleDao.hasDirectSubRole(r1, r2));
+		assertTrue(roleDao.hasDirectSubRole(r1, r3));
+		assertFalse(roleDao.hasDirectSubRole(r1, r4));
+		assertFalse(roleDao.hasDirectSubRole(r1, r5));
+	}
+	
+	@Test
+	public void testHasIndirectSubRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.createRole(r5);
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
+		assertFalse(roleDao.hasIndirectSubRole(r1, r2));
+		assertFalse(roleDao.hasIndirectSubRole(r1, r3));
+		assertTrue(roleDao.hasIndirectSubRole(r1, r4));
+		assertFalse(roleDao.hasIndirectSubRole(r1, r5));
+	}
 }
