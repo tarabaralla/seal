@@ -112,65 +112,65 @@ public class User {
 		this.phone = phone;
 	}
 
-	public boolean addRole(Role role) {
-
-		if (this.hasRole(role)) {
-			throw new IllegalArgumentException("Passed role already assigned to this user");
-		}
-
-		Iterator<Role> iterator = roles.iterator();
-		while (iterator.hasNext()) {
-			if (role.hasSubRole(iterator.next())) {
-				iterator.remove();
-			}
-		}
-
-		return roles.add(role);
-	}
-
-	public boolean removeRole(Role role) {
-		
-		
-		if (this.hasRole(role) && !hasDirectRole(role)) {
-			throw new IllegalArgumentException("Only direct role can be removed from users. Role " + role.getName()
-					+ " is a sub-role for User " + this.getName());
-		} else if (!this.hasRole(role)) {
-			throw new IllegalArgumentException(
-					"Role " + role.getName() + " to remove isn't assigned to user " + this.getName());
-		}
-
-		return roles.remove(role);
-	}
-
-	public boolean hasRole(Role role) {
-		for (Role r : roles) {
-			if (r.getName().equals(role.getName()) || r.hasSubRole(role)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public boolean hasDirectRole(Role role) {
-		List<String> roleNames = roles.stream()
-				.map(r -> r.getName())
-				.collect(Collectors.toList());
-		return roleNames.contains(role.getName());
-	}
-
-	public Set<Role> getDirectRoles() {
-		return Collections.unmodifiableSet(roles);
-	}
-
-	public Set<Role> getAllRoles() {
-
-		Set<Role> allRoles = new HashSet<>(roles);
-
-		for (Role role : roles) {
-			allRoles.addAll(role.getAllSubRoles());
-		}
-
-		return allRoles;
-	}
+//	public boolean addRole(Role role) {
+//
+//		if (this.hasRole(role)) {
+//			throw new IllegalArgumentException("Passed role already assigned to this user");
+//		}
+//
+//		Iterator<Role> iterator = roles.iterator();
+//		while (iterator.hasNext()) {
+//			if (role.hasSubRole(iterator.next())) {
+//				iterator.remove();
+//			}
+//		}
+//
+//		return roles.add(role);
+//	}
+//
+//	public boolean removeRole(Role role) {
+//		
+//		
+//		if (this.hasRole(role) && !hasDirectRole(role)) {
+//			throw new IllegalArgumentException("Only direct role can be removed from users. Role " + role.getName()
+//					+ " is a sub-role for User " + this.getName());
+//		} else if (!this.hasRole(role)) {
+//			throw new IllegalArgumentException(
+//					"Role " + role.getName() + " to remove isn't assigned to user " + this.getName());
+//		}
+//
+//		return roles.remove(role);
+//	}
+//
+//	public boolean hasRole(Role role) {
+//		for (Role r : roles) {
+//			if (r.getName().equals(role.getName()) || r.hasSubRole(role)) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//	
+//	public boolean hasDirectRole(Role role) {
+//		List<String> roleNames = roles.stream()
+//				.map(r -> r.getName())
+//				.collect(Collectors.toList());
+//		return roleNames.contains(role.getName());
+//	}
+//
+//	public Set<Role> getDirectRoles() {
+//		return Collections.unmodifiableSet(roles);
+//	}
+//
+//	public Set<Role> getAllRoles() {
+//
+//		Set<Role> allRoles = new HashSet<>(roles);
+//
+//		for (Role role : roles) {
+//			allRoles.addAll(role.getAllSubRoles());
+//		}
+//
+//		return allRoles;
+//	}
 
 }
