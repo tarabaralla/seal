@@ -21,7 +21,7 @@ public class SubRoleRelationDao extends BaseDao {
 		
 		try {
 			
-			checkSubRoleRelation(subRoleRelation);
+			checkNewSubRoleRelation(subRoleRelation);
 				
 			Set<IndirectSubRoleRelation> indirectSubRoleRelations = new HashSet<>();
 			
@@ -37,20 +37,20 @@ public class SubRoleRelationDao extends BaseDao {
 			
 			for(String roleAncestorId : roleAncestorsIds) {
 				IndirectSubRoleRelation currentIndSubRoleRelation = new IndirectSubRoleRelation(roleAncestorId, subRoleRelation.getSubRoleId());
-				checkSubRoleRelation(currentIndSubRoleRelation);
+				checkNewSubRoleRelation(currentIndSubRoleRelation);
 				indirectSubRoleRelations.add(currentIndSubRoleRelation);
 			}
 			
 			for( String subRoleDescendantId : subRoleDescendantsIds ) {
 				IndirectSubRoleRelation currentIndSubRoleRelation = new IndirectSubRoleRelation(subRoleRelation.getRoleId(), subRoleDescendantId);
-				checkSubRoleRelation(currentIndSubRoleRelation);
+				checkNewSubRoleRelation(currentIndSubRoleRelation);
 				indirectSubRoleRelations.add(currentIndSubRoleRelation);
 			}
 			
 			for( String roleAncestorId : roleAncestorsIds ) {
 				for( String subRoleDescendantId : subRoleDescendantsIds ) {
 					IndirectSubRoleRelation currentIndSubRoleRelation = new IndirectSubRoleRelation(roleAncestorId, subRoleDescendantId);
-					checkSubRoleRelation(currentIndSubRoleRelation);
+					checkNewSubRoleRelation(currentIndSubRoleRelation);
 					indirectSubRoleRelations.add(currentIndSubRoleRelation);
 				}
 			}
@@ -101,14 +101,14 @@ public class SubRoleRelationDao extends BaseDao {
 		
 	}
 
-	void checkSubRoleRelation(SubRoleRelation srr) {
+	private void checkNewSubRoleRelation(SubRoleRelation srr) {
 		
 		if( srr == null || srr.getRoleId() == null || srr.getSubRoleId() == null ) {
 			throw new IllegalArgumentException("IDs of role and subRole cannot be null.");
 		}
 		
 		if( srr.getId() != null ) {
-			throw new IllegalArgumentException("It already has an ID.");
+			throw new IllegalArgumentException("Passed SubRoleRelation already persisted.");
 		}
 		
 		if( srr.getRoleId().equals(srr.getSubRoleId()) ) {
@@ -130,38 +130,38 @@ public class SubRoleRelationDao extends BaseDao {
 	}
 
 	@SuppressWarnings("unchecked")
-	Set<SubRoleRelation> findSubRoleRelations(SubRoleRelationType type, String roleId, String subRoleId) {
+	public Set<SubRoleRelation> findSubRoleRelations(SubRoleRelationType type, String roleId, String subRoleId) {
 		
 		if( type == null && roleId == null && subRoleId == null ) {
 			throw new IllegalArgumentException("Unable to find subRole relations: At least one search field must be specified.");
 		}
 		
 		if( type != null && roleId == null && subRoleId == null ) {
-			Query q = em.createQuery("select sr from " + type.getQueryValue() + " sr");
+			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr");
 			return new HashSet<>(q.getResultList());
 		}else if( type != null && roleId != null && subRoleId == null ) {
-			Query q = em.createQuery("select sr from " + type.getQueryValue() + " sr where sr.roleId = :roleId");
+			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr where srr.roleId = :roleId");
 			q.setParameter("roleId", roleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type != null && roleId == null && subRoleId != null ) {
-			Query q = em.createQuery("select sr from " + type.getQueryValue() + " sr where sr.subRoleId = :subRoleId");
+			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr where srr.subRoleId = :subRoleId");
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type != null && roleId != null && subRoleId != null ) {
-			Query q = em.createQuery("select sr from " + type.getQueryValue() + " sr where sr.roleId = :roleId and sr.subRoleId = :subRoleId");
+			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr where srr.roleId = :roleId and srr.subRoleId = :subRoleId");
 			q.setParameter("roleId", roleId);
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type == null && roleId != null && subRoleId == null ) {
-			Query q = em.createQuery("select sr from SubRoleRelation sr where sr.roleId = :roleId");
+			Query q = em.createQuery("select srr from SubRoleRelation srr where srr.roleId = :roleId");
 			q.setParameter("roleId", roleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type == null && roleId == null && subRoleId != null ) {
-			Query q = em.createQuery("select sr from SubRoleRelation sr where sr.subRoleId = :subRoleId");
+			Query q = em.createQuery("select srr from SubRoleRelation srr where srr.subRoleId = :subRoleId");
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
 		}else {
-			Query q = em.createQuery("select sr from SubRoleRelation sr where sr.roleId = :roleId and sr.subRoleId = :subRoleId");
+			Query q = em.createQuery("select srr from SubRoleRelation srr where srr.roleId = :roleId and srr.subRoleId = :subRoleId");
 			q.setParameter("roleId", roleId);
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());

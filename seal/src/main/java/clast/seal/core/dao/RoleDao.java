@@ -1,12 +1,15 @@
 package clast.seal.core.dao;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import clast.seal.core.model.DirectSubRoleRelation;
+import clast.seal.core.model.ManagedRoleRelation;
 import clast.seal.core.model.Role;
 import clast.seal.core.model.SubRoleRelation;
 import clast.seal.core.model.SubRoleRelationType;
@@ -14,10 +17,12 @@ import clast.seal.core.model.SubRoleRelationType;
 public class RoleDao extends BaseDao{
 	
 	private SubRoleRelationDao subRoleRelationDao;
+	private ManagedRoleRelationDao managedRoleRelationDao;
 	
 	public RoleDao() {
 		super();
 		subRoleRelationDao = new SubRoleRelationDao();
+		managedRoleRelationDao = new ManagedRoleRelationDao();
 	}
 
 	public boolean createRole(Role role) {
@@ -75,6 +80,11 @@ public class RoleDao extends BaseDao{
 		return true;
 	}
 	
+	public Set<Role> findAllRoles() {
+		TypedQuery<Role> q = em.createQuery("select r from Role r", Role.class);
+		return new HashSet<>(q.getResultList());
+	}
+	
 	public Role findRoleByName(String name) {
 		
 		if( name == null ) {
@@ -97,11 +107,6 @@ public class RoleDao extends BaseDao{
 		}
 		
 		return em.find(Role.class, id);
-	}
-
-	public Set<Role> findAllRoles() {
-		TypedQuery<Role> q = em.createQuery("select r from Role r", Role.class);
-		return new HashSet<>(q.getResultList());
 	}
 
 	public boolean addSubRole(Role role, Role subRole) {
@@ -143,6 +148,63 @@ public class RoleDao extends BaseDao{
 	
 	public boolean hasIndirectSubRole(Role role, Role subRole) {
 		return !subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.INDIRECT, role.getId(), subRole.getId()).isEmpty();
+	}
+	
+	public boolean addManagedRole(Role role, Role managedRole) {
+		return managedRoleRelationDao.createManagedRelation( new ManagedRoleRelation(role.getId(), managedRole.getId()) );
+	}
+	
+	public boolean removeManagedRole(Role role, Role managedRole) {
+		return managedRoleRelationDao.deleteManagedRelation( new ManagedRoleRelation(role.getId(), managedRole.getId()) );
+	}
+	
+	public Set<Role> findAllManagedRoles(Role role) {
+		Set<Role> managedRoles = findDirectManagedRoles(role);
+		managedRoles.addAll(findIndirectManagedRoles(role));
+		return managedRoles;
+	}
+	
+	public Set<Role> findDirectManagedRoles(Role role) {
+		Set<ManagedRoleRelation> managedRoleRelations = managedRoleRelationDao.findManagedRoleRelations(role.getId(), null);
+		Set<Role> managedRoles = new HashSet<>();
+		for( ManagedRoleRelation managedRoleRelation : managedRoleRelations ) {
+			managedRoles.add( findRoleById(managedRoleRelation.getManagedRoleId()) );
+		}
+		return managedRoles;
+	}
+	
+	public Set<Role> findIndirectManagedRoles(Role role) {
+		Set<Role> managedRoles = new HashSet<>();
+		Iterator<Role> iterator = findDirectManagedRoles(role).iterator();
+		while( iterator.hasNext() ) {
+			managedRoles.addAll( findDirectManagedRoles(iterator.next()) );
+		}
+		return managedRoles;
+	}
+	
+	public boolean managesRole(Role role, Role managedRole) {
+		return findAllManagedRoles(role)
+				.stream()
+					.map( dmr -> dmr.getId() )
+					.collect(Collectors.toSet())
+				.contains( managedRole.getId() );
+	}
+	
+	public boolean directlyManagesRole(Role role, Role managedRole) {
+		return findDirectManagedRoles(role)
+				.stream()
+					.map( dmr -> dmr.getId() )
+					.collect(Collectors.toSet())
+				.contains( managedRole.getId() );
+	}
+	
+	public boolean indirectlyManagesRole(Role role, Role managedRole) {
+		
+		return findIndirectManagedRoles(role)
+				.stream()
+					.map( dmr -> dmr.getId() )
+					.collect(Collectors.toSet())
+					.contains( managedRole.getId() );
 	}
 
 }

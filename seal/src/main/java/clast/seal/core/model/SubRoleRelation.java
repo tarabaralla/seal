@@ -41,10 +41,6 @@ public abstract class SubRoleRelation {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
 	public String getRoleId() {
 		return roleId;
 	}

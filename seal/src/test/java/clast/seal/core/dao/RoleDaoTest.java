@@ -127,6 +127,24 @@ public class RoleDaoTest {
 	}
 	
 	@Test
+	public void findAllRoles() {
+		assertTrue(roleDao.findAllRoles().isEmpty());
+		
+		roleDao.createRole(new Role("r1"));
+		Set<String> roleNames = roleDao.findAllRoles().stream().map( r -> r.getName()).collect(Collectors.toSet());
+		assertEquals(1, roleNames.size());
+		assertTrue( roleNames.contains("r1"));
+		
+		roleDao.createRole(new Role("r2"));
+		roleDao.createRole(new Role("r3"));
+		roleNames = roleDao.findAllRoles().stream().map( r -> r.getName()).collect(Collectors.toSet());
+		assertEquals(3, roleNames.size());
+		assertTrue( roleNames.contains("r1"));
+		assertTrue( roleNames.contains("r2"));
+		assertTrue( roleNames.contains("r3"));
+	}
+	
+	@Test
 	public void testFindRoleByName() {
 		roleDao.createRole( new Role("role") );
 		assertNotNull(roleDao.findRoleByName("role"));
@@ -156,25 +174,6 @@ public class RoleDaoTest {
 		
 		roleDao.findRoleById(null);
 	}
-	
-	@Test
-	public void findAllRoles() {
-		assertTrue(roleDao.findAllRoles().isEmpty());
-		
-		roleDao.createRole(new Role("r1"));
-		Set<String> roleNames = roleDao.findAllRoles().stream().map( r -> r.getName()).collect(Collectors.toSet());
-		assertEquals(1, roleNames.size());
-		assertTrue( roleNames.contains("r1"));
-		
-		roleDao.createRole(new Role("r2"));
-		roleDao.createRole(new Role("r3"));
-		roleNames = roleDao.findAllRoles().stream().map( r -> r.getName()).collect(Collectors.toSet());
-		assertEquals(3, roleNames.size());
-		assertTrue( roleNames.contains("r1"));
-		assertTrue( roleNames.contains("r2"));
-		assertTrue( roleNames.contains("r3"));
-		
-	}
 
 	@Test
 	public void testAddSubRole() {
@@ -192,7 +191,7 @@ public class RoleDaoTest {
 	}
 	
 	@Test
-	public void testFindAllSubroles() {
+	public void testFindAllSubRoles() {
 		roleDao.createRole(r1);
 		roleDao.createRole(r2);
 		roleDao.createRole(r3);
@@ -283,4 +282,113 @@ public class RoleDaoTest {
 		assertTrue(roleDao.hasIndirectSubRole(r1, r4));
 		assertFalse(roleDao.hasIndirectSubRole(r1, r5));
 	}
+	
+	@Test
+	public void testAddManagedRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		assertTrue(roleDao.addManagedRole(r1, r2));
+	}
+	
+	@Test
+	public void testRemoveManagedRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.addManagedRole(r1, r2);
+		assertTrue(roleDao.removeManagedRole(r1, r2));
+	}
+	
+	@Test
+	public void testFindAllManagedRoles() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r4);
+		Set<String> managedRolesNames = roleDao.findAllManagedRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
+		assertEquals(3, managedRolesNames.size());
+		assertTrue(managedRolesNames.contains(r2.getName()));
+		assertTrue(managedRolesNames.contains(r3.getName()));
+		assertTrue(managedRolesNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testFindDirectManagedRoles() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r4);
+		Set<String> managedRolesNames = roleDao.findDirectManagedRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
+		assertEquals(2, managedRolesNames.size());
+		assertTrue(managedRolesNames.contains(r2.getName()));
+		assertTrue(managedRolesNames.contains(r3.getName()));
+	}
+	
+	@Test
+	public void testFindIndirectManagedRoles() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r4);
+		Set<String> managedRolesNames = roleDao.findIndirectManagedRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
+		assertEquals(1, managedRolesNames.size());
+		assertTrue(managedRolesNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testManagesRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.createRole(r5);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r4);
+		assertTrue(roleDao.managesRole(r1, r2));
+		assertTrue(roleDao.managesRole(r1, r3));
+		assertTrue(roleDao.managesRole(r1, r4));
+		assertFalse(roleDao.managesRole(r1, r5));
+	}
+	
+	@Test
+	public void testDirectlyManagesRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.createRole(r5);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r4);
+		assertTrue(roleDao.directlyManagesRole(r1, r2));
+		assertTrue(roleDao.directlyManagesRole(r1, r3));
+		assertFalse(roleDao.directlyManagesRole(r1, r4));
+		assertFalse(roleDao.directlyManagesRole(r1, r5));
+	}
+	
+	@Test
+	public void testIndirectlyManagesRole() {
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.createRole(r5);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r4);
+		assertFalse(roleDao.indirectlyManagesRole(r1, r2));
+		assertFalse(roleDao.indirectlyManagesRole(r1, r3));
+		assertTrue(roleDao.indirectlyManagesRole(r1, r4));
+		assertFalse(roleDao.indirectlyManagesRole(r1, r5));
+	}
+	
 }
