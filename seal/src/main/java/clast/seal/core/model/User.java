@@ -42,26 +42,15 @@ public class User {
 
 	private String phone;
 
-	@ManyToMany( cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH} )
-	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-	private Set<Role> roles;
-
-	public User() {
-		this.roles = new HashSet<>();
-	}
+	public User() {}
 	
 	public User(String username, String password) {
 		this.username = username;
 		this.password = password;
-		this.roles = new HashSet<>();
 	}
 	
 	public String getId() {
 		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
 	}
 
 	public String getUsername() {

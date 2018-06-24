@@ -51,15 +51,15 @@ public class ManagedRoleRelationDaoTest {
 	}
 	
 	@Test
-	public void testCreateManagedRelation() {
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId())));
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId())));
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId())));
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId())));
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId())));
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId())));
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId())));
-		assertTrue(managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId())));
+	public void testCreateManagedRoleRelation() {
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId())));
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId())));
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId())));
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId())));
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId())));
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId())));
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId())));
+		assertTrue(managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId())));
 	}
 	
 	@Test
@@ -67,7 +67,7 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to create managedRole relation: IDs of role and managedRole cannot be null.");
 		
-		managedRoleRelationDao.createManagedRelation(null);
+		managedRoleRelationDao.createManagedRoleRelation(null);
 	}
 	
 	@Test
@@ -75,7 +75,7 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to create managedRole relation: IDs of role and managedRole cannot be null.");
 		
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(null, r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(null, r2.getId()));
 	}
 	
 	@Test
@@ -83,7 +83,7 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to create managedRole relation: IDs of role and managedRole cannot be null.");
 		
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), null));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), null));
 	}
 	
 	@Test
@@ -91,7 +91,7 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to create managedRole relation: IDs of role and managedRole cannot be null.");
 		
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(null, null));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(null, null));
 	}
 	
 	@Test
@@ -100,8 +100,8 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expectMessage("Unable to create managedRole relation: Passed ManagedRoleRelation already persisted.");
 		
 		ManagedRoleRelation dmrr = createTestManagedRoleRelation(r1.getId(), r2.getId());
-		managedRoleRelationDao.createManagedRelation(dmrr);
-		managedRoleRelationDao.createManagedRelation(dmrr);
+		managedRoleRelationDao.createManagedRoleRelation(dmrr);
+		managedRoleRelationDao.createManagedRoleRelation(dmrr);
 	}
 	
 	@Test
@@ -109,22 +109,22 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to create managedRole relation: Role: " + r2.getId() + " is already managed from Role: " + r1.getId());
 		
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
 	}
 	
 	@Test
 	public void testDeleteManagedRoleRelation1() {
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
-		managedRoleRelationDao.deleteManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.deleteManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
 		
 		Set<String> managedRoles = managedRoleRelationDao.findManagedRoleRelations(null, null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
 		assertEquals(7, managedRoles.size());
@@ -139,16 +139,16 @@ public class ManagedRoleRelationDaoTest {
 	
 	@Test
 	public void testDeleteManagedRoleRelation2() {
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
-		managedRoleRelationDao.deleteManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.deleteManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
 		
 		Set<String> managedRoles = managedRoleRelationDao.findManagedRoleRelations(null, null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
 		assertEquals(7, managedRoles.size());
@@ -163,16 +163,16 @@ public class ManagedRoleRelationDaoTest {
 	
 	@Test
 	public void testDeleteManagedRoleRelation3() {
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
-		managedRoleRelationDao.deleteManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.deleteManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
 		
 		Set<String> managedRoles = managedRoleRelationDao.findManagedRoleRelations(null, null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
 		assertEquals(7, managedRoles.size());
@@ -187,16 +187,16 @@ public class ManagedRoleRelationDaoTest {
 	
 	@Test
 	public void testDeleteManagedRoleRelation4() {
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
-		managedRoleRelationDao.deleteManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.deleteManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
 		Set<String> managedRoles = managedRoleRelationDao.findManagedRoleRelations(null, null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
 		assertEquals(7, managedRoles.size());
@@ -214,16 +214,16 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to delete managedRole relation: Relation between Role: " + r1.getId() + "and ManagedRole:" + r4.getId() + " not exist.");
 	
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
-		managedRoleRelationDao.deleteManagedRelation(createTestManagedRoleRelation(r1.getId(), r4.getId()));
+		managedRoleRelationDao.deleteManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r4.getId()));
 	}
 	
 	@Test
@@ -231,28 +231,28 @@ public class ManagedRoleRelationDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to delete managedRole relation: Relation between Role: " + r1.getId() + "and ManagedRole:" + r5.getId() + " not exist.");
 		
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
-		managedRoleRelationDao.deleteManagedRelation(createTestManagedRoleRelation(r1.getId(), r5.getId()));
+		managedRoleRelationDao.deleteManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r5.getId()));
 	}
 	
 	@Test
 	public void testFindManagedRoleRelations() {
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
-		managedRoleRelationDao.createManagedRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r1.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r2.getId(), r3.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r2.getId()));
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r3.getId(), r4.getId()));
 		
 		Set<String> managedRoles = managedRoleRelationDao.findManagedRoleRelations(null, null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
 		assertEquals(8, managedRoles.size());

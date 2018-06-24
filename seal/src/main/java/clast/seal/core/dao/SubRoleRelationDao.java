@@ -101,34 +101,6 @@ public class SubRoleRelationDao extends BaseDao {
 		
 	}
 
-	private void checkNewSubRoleRelation(SubRoleRelation srr) {
-		
-		if( srr == null || srr.getRoleId() == null || srr.getSubRoleId() == null ) {
-			throw new IllegalArgumentException("IDs of role and subRole cannot be null.");
-		}
-		
-		if( srr.getId() != null ) {
-			throw new IllegalArgumentException("Passed SubRoleRelation already persisted.");
-		}
-		
-		if( srr.getRoleId().equals(srr.getSubRoleId()) ) {
-			throw new IllegalArgumentException("A role cannot be sub-role of itself.");
-		}
-		
-		if( srr instanceof DirectSubRoleRelation && !findSubRoleRelations(null, null, srr.getSubRoleId()).isEmpty() ) {
-			throw new IllegalArgumentException("SubRoleRelation: " + srr.getSubRoleId() + " is already subRole of another role.");
-		}
-		
-		if( srr instanceof IndirectSubRoleRelation && !findSubRoleRelations(null, srr.getRoleId(), srr.getSubRoleId()).isEmpty() ) {
-			throw new IllegalArgumentException("A relation between role: " + srr.getRoleId() + " and subRole: " + srr.getSubRoleId() + " already exist.");
-		}
-		
-		if( !findSubRoleRelations(null, srr.getSubRoleId(), srr.getRoleId()).isEmpty() ) {
-			throw new IllegalArgumentException("Cyclic relations are not allowed.");
-		}
-
-	}
-
 	@SuppressWarnings("unchecked")
 	public Set<SubRoleRelation> findSubRoleRelations(SubRoleRelationType type, String roleId, String subRoleId) {
 		
@@ -166,6 +138,34 @@ public class SubRoleRelationDao extends BaseDao {
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
 		}
+	}
+	
+	private void checkNewSubRoleRelation(SubRoleRelation srr) {
+		
+		if( srr == null || srr.getRoleId() == null || srr.getSubRoleId() == null ) {
+			throw new IllegalArgumentException("IDs of role and subRole cannot be null.");
+		}
+		
+		if( srr.getId() != null ) {
+			throw new IllegalArgumentException("Passed SubRoleRelation already persisted.");
+		}
+		
+		if( srr.getRoleId().equals(srr.getSubRoleId()) ) {
+			throw new IllegalArgumentException("A role cannot be sub-role of itself.");
+		}
+		
+		if( srr instanceof DirectSubRoleRelation && !findSubRoleRelations(null, null, srr.getSubRoleId()).isEmpty() ) {
+			throw new IllegalArgumentException("SubRoleRelation: " + srr.getSubRoleId() + " is already subRole of another role.");
+		}
+		
+		if( srr instanceof IndirectSubRoleRelation && !findSubRoleRelations(null, srr.getRoleId(), srr.getSubRoleId()).isEmpty() ) {
+			throw new IllegalArgumentException("A relation between role: " + srr.getRoleId() + " and subRole: " + srr.getSubRoleId() + " already exist.");
+		}
+		
+		if( !findSubRoleRelations(null, srr.getSubRoleId(), srr.getRoleId()).isEmpty() ) {
+			throw new IllegalArgumentException("Cyclic relations are not allowed.");
+		}
+		
 	}
 
 }

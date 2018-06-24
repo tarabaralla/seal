@@ -9,7 +9,7 @@ import clast.seal.core.model.ManagedRoleRelation;
 
 public class ManagedRoleRelationDao extends BaseDao {
 
-	public boolean createManagedRelation(ManagedRoleRelation managedRoleRelation) {
+	public boolean createManagedRoleRelation(ManagedRoleRelation managedRoleRelation) {
 		
 		try {
 
@@ -25,35 +25,19 @@ public class ManagedRoleRelationDao extends BaseDao {
 		
 	}
 	
-	public boolean deleteManagedRelation(ManagedRoleRelation managedRoleRelation) {
+	public boolean deleteManagedRoleRelation(ManagedRoleRelation managedRoleRelation) {
 		
-		Set<ManagedRoleRelation> toDeleteMRR = findManagedRoleRelations(managedRoleRelation.getRoleId(), managedRoleRelation.getManagedRoleId());
+		Set<ManagedRoleRelation> mrrToDelete = findManagedRoleRelations(managedRoleRelation.getRoleId(), managedRoleRelation.getManagedRoleId());
 		
-		if( toDeleteMRR.isEmpty() ) {
+		if( mrrToDelete.isEmpty() ) {
 			throw new IllegalArgumentException("Unable to delete managedRole relation: Relation between Role: " + managedRoleRelation.getRoleId() + "and ManagedRole:" + managedRoleRelation.getManagedRoleId() + " not exist.");
 		}
 		
 		em.getTransaction().begin();
-		em.remove(toDeleteMRR.iterator().next());
+		em.remove(mrrToDelete.iterator().next());
 		em.getTransaction().commit();
 		
 		return true;
-		
-	}
-
-	private void checkNewManagedRoleRelation(ManagedRoleRelation mrr) {
-		
-		if( mrr == null || mrr.getRoleId() == null || mrr.getManagedRoleId() == null ) {
-			throw new IllegalArgumentException("IDs of role and managedRole cannot be null.");
-		}
-		
-		if( mrr.getId() != null ) {
-			throw new IllegalArgumentException("Passed ManagedRoleRelation already persisted.");
-		}
-		
-		if( !findManagedRoleRelations(mrr.getRoleId(), mrr.getManagedRoleId()).isEmpty() ) {
-			throw new IllegalArgumentException("Role: " + mrr.getManagedRoleId() + " is already managed from Role: " + mrr.getRoleId());
-		}
 		
 	}
 	
@@ -77,6 +61,22 @@ public class ManagedRoleRelationDao extends BaseDao {
 			q.setParameter("managedRoleId", managedRoleId);
 			return new HashSet<>(q.getResultList());
 		}
+	}
+	
+	private void checkNewManagedRoleRelation(ManagedRoleRelation mrr) {
+		
+		if( mrr == null || mrr.getRoleId() == null || mrr.getManagedRoleId() == null ) {
+			throw new IllegalArgumentException("IDs of role and managedRole cannot be null.");
+		}
+		
+		if( mrr.getId() != null ) {
+			throw new IllegalArgumentException("Passed ManagedRoleRelation already persisted.");
+		}
+		
+		if( !findManagedRoleRelations(mrr.getRoleId(), mrr.getManagedRoleId()).isEmpty() ) {
+			throw new IllegalArgumentException("Role: " + mrr.getManagedRoleId() + " is already managed from Role: " + mrr.getRoleId());
+		}
+		
 	}
 
 }

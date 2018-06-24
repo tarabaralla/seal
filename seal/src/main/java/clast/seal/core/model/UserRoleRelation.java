@@ -31,6 +31,10 @@ public class UserRoleRelation {
 		this.userId = userId;
 		this.roleId = roleId;
 	}
+	
+	public String getId() {
+		return id;
+	}
 
 	public String getUserId() {
 		return userId;
@@ -47,9 +51,10 @@ public class UserRoleRelation {
 	public void setRoleId(String roleId) {
 		this.roleId = roleId;
 	}
-
-	public String getId() {
-		return id;
+	
+	@Override
+	public String toString() {
+		return userId + "-" + roleId;
 	}
 
 }

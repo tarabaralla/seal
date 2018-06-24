@@ -27,23 +27,39 @@ public class RoleDao extends BaseDao{
 
 	public boolean createRole(Role role) {
 		
+		try {
+
+			checkNewRole(role);
+			
+			em.persist(role);
+			
+			return true;
+			
+		}catch (Exception e) {
+			throw new IllegalArgumentException("Unable to create role: " + e.getMessage(), e);
+		}
+	}
+
+	private void checkNewRole(Role role) {
+		
+		if( role == null ) {
+			throw new IllegalArgumentException("Role cannot be null.");
+		}
+		
 		if( role.getId() != null ) {
-			throw new IllegalArgumentException("Unable to create role: it already has an ID.");
+			throw new IllegalArgumentException("Role is already persisted.");
 		}
 		
 		if( role.getName() == null ) {
-			throw new IllegalArgumentException("Unable to create role: role name cannot be null.");
+			throw new IllegalArgumentException("Role name cannot be null.");
 		}
 
 		if( findRoleByName(role.getName()) != null ) {
-			throw new IllegalArgumentException("Unable to create role: name is already assigned to another role.");
+			throw new IllegalArgumentException("Role name is already assigned to another role.");
 		}
-		
-		em.persist(role);
-		return true;
 	}
 	
-	public boolean deleteRole(Role role) {
+	public boolean deleteRole(Role role, boolean cascade) {
 		
 		Role r;
 		try {
@@ -57,10 +73,31 @@ public class RoleDao extends BaseDao{
 		}
 		
 		em.getTransaction().begin();
-		em.remove(r);
+		
+		delete(r, cascade);
+		
 		em.getTransaction().commit();			
 		
 		return true;
+	}
+
+	private void delete(Role role, boolean cascade) {
+		
+		for( ManagedRoleRelation mrr : managedRoleRelationDao.findManagedRoleRelations(role.getId(), null) ) {
+			em.remove(mrr);
+		}
+		
+		if( cascade ) {
+			for( SubRoleRelation srr : subRoleRelationDao.findSubRoleRelations(SubRoleRelationType.DIRECT, role.getId(), null) ) {
+				delete( findRoleById(srr.getSubRoleId()), true );
+			}
+		}
+		
+		for( SubRoleRelation srr : subRoleRelationDao.findSubRoleRelations(null, role.getId(), null) ) {
+			em.remove(srr);
+		}
+		
+		em.remove(role);
 	}
 
 	public boolean updateRoleName(String roleId, String name) {
@@ -82,6 +119,18 @@ public class RoleDao extends BaseDao{
 	
 	public Set<Role> findAllRoles() {
 		TypedQuery<Role> q = em.createQuery("select r from Role r", Role.class);
+		return new HashSet<>(q.getResultList());
+	}
+	
+	public Set<Role> findRolesByFreeSearch(String text) {
+		
+		if( text == null || "".equals(text) ) {
+			throw new IllegalArgumentException("Unable to find roles: text of search cannot be empty.");
+		}
+		
+		TypedQuery<Role> q = em.createQuery("select r from Role r where r.name like :text", Role.class);
+		q.setParameter("text", "%" + text + "%");
+		
 		return new HashSet<>(q.getResultList());
 	}
 	
@@ -151,11 +200,11 @@ public class RoleDao extends BaseDao{
 	}
 	
 	public boolean addManagedRole(Role role, Role managedRole) {
-		return managedRoleRelationDao.createManagedRelation( new ManagedRoleRelation(role.getId(), managedRole.getId()) );
+		return managedRoleRelationDao.createManagedRoleRelation( new ManagedRoleRelation(role.getId(), managedRole.getId()) );
 	}
 	
 	public boolean removeManagedRole(Role role, Role managedRole) {
-		return managedRoleRelationDao.deleteManagedRelation( new ManagedRoleRelation(role.getId(), managedRole.getId()) );
+		return managedRoleRelationDao.deleteManagedRoleRelation( new ManagedRoleRelation(role.getId(), managedRole.getId()) );
 	}
 	
 	public Set<Role> findAllManagedRoles(Role role) {

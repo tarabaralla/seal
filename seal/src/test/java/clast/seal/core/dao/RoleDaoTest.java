@@ -19,6 +19,8 @@ import clast.seal.core.model.Role;
 public class RoleDaoTest {
 	
 	private RoleDao roleDao;
+	private SubRoleRelationDao subRoleRelationDao;
+	private ManagedRoleRelationDao managedRoleRelationDao;
 	
 	private Role r1;
 	private Role r2;
@@ -32,11 +34,18 @@ public class RoleDaoTest {
 	@Before
 	public void setUp() {
 		roleDao = new RoleDao();
+		subRoleRelationDao = new SubRoleRelationDao();
+		managedRoleRelationDao = new ManagedRoleRelationDao();
 		r1 = new Role("role1");
 		r2 = new Role("role2");
 		r3 = new Role("role3");
 		r4 = new Role("role4");
 		r5 = new Role("role5");
+		roleDao.createRole(r1);
+		roleDao.createRole(r2);
+		roleDao.createRole(r3);
+		roleDao.createRole(r4);
+		roleDao.createRole(r5);
 	}
 
 	@Test
@@ -46,9 +55,17 @@ public class RoleDaoTest {
 	}
 	
 	@Test
+	public void testCreateNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create role: Role cannot be null.");
+		
+		roleDao.createRole(null);
+	}
+	
+	@Test
 	public void testCreateAlreadyExistingRole() {
 		expectedEx.expect(IllegalArgumentException.class);
-		expectedEx.expectMessage("Unable to create role: it already has an ID.");
+		expectedEx.expectMessage("Unable to create role: Role is already persisted.");
 		
 		Role role = new Role("role");
 		roleDao.createRole(role);
@@ -58,7 +75,7 @@ public class RoleDaoTest {
 	@Test
 	public void testCreateRoleWithoutName() {
 		expectedEx.expect(IllegalArgumentException.class);
-		expectedEx.expectMessage("Unable to create role: role name cannot be null.");
+		expectedEx.expectMessage("Unable to create role: Role name cannot be null.");
 		
 		Role role = new Role();
 		roleDao.createRole(role);
@@ -67,7 +84,7 @@ public class RoleDaoTest {
 	@Test
 	public void testCreateRoleWithOccupiedName() {
 		expectedEx.expect(IllegalArgumentException.class);
-		expectedEx.expectMessage("Unable to create role: name is already assigned to another role.");
+		expectedEx.expectMessage("Unable to create role: Role name is already assigned to another role.");
 		
 		Role role = new Role("role");
 		roleDao.createRole(role);
@@ -77,9 +94,77 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testDeleteRole() {
-		roleDao.createRole(new Role("role"));
-		Role role = roleDao.findRoleByName("role");
-		assertTrue(roleDao.deleteRole(role));
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addManagedRole(r1, r1);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r2);
+		roleDao.addManagedRole(r2, r3);
+		roleDao.addManagedRole(r3, r3);
+		
+		Set<String> roleNames = roleDao.findAllRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(5, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r4.getName()));
+		assertTrue(roleNames.contains(r5.getName()));
+		
+		Set<String> managedRoleRelations = managedRoleRelationDao.findManagedRoleRelations(null, null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
+		assertEquals(6, managedRoleRelations.size());
+		assertTrue(managedRoleRelations.contains(stringOf(r1.getId(), r1.getId())));
+		assertTrue(managedRoleRelations.contains(stringOf(r1.getId(), r2.getId())));
+		assertTrue(managedRoleRelations.contains(stringOf(r1.getId(), r3.getId())));
+		assertTrue(managedRoleRelations.contains(stringOf(r2.getId(), r2.getId())));
+		assertTrue(managedRoleRelations.contains(stringOf(r2.getId(), r3.getId())));
+		assertTrue(managedRoleRelations.contains(stringOf(r3.getId(), r3.getId())));
+		
+		Set<String> subRoleRelations = subRoleRelationDao.findSubRoleRelations(null, r1.getId(), null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
+		assertEquals(2, subRoleRelations.size());
+		assertTrue(subRoleRelations.contains(stringOf(r1.getId(), r2.getId())));
+		assertTrue(subRoleRelations.contains(stringOf(r1.getId(), r3.getId())));
+		
+		assertTrue(roleDao.deleteRole(r1, false));
+		
+		roleNames = roleDao.findAllRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(4, roleNames.size());
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r4.getName()));
+		assertTrue(roleNames.contains(r5.getName()));
+		
+		managedRoleRelations = managedRoleRelationDao.findManagedRoleRelations(null, null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
+		assertEquals(3, managedRoleRelations.size());
+		assertTrue(managedRoleRelations.contains(stringOf(r2.getId(), r2.getId())));
+		assertTrue(managedRoleRelations.contains(stringOf(r2.getId(), r3.getId())));
+		assertTrue(managedRoleRelations.contains(stringOf(r3.getId(), r3.getId())));
+		
+		subRoleRelations = subRoleRelationDao.findSubRoleRelations(null, r1.getId(), null).stream().map( mrr -> mrr.toString() ).collect(Collectors.toSet());
+		assertEquals(0, subRoleRelations.size());
+		
+	}
+	
+	@Test
+	public void testCascadeDeleteRole() {
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
+		roleDao.addSubRole(r2, r5);
+		
+		Set<String> roleNames = roleDao.findAllRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(5, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r4.getName()));
+		assertTrue(roleNames.contains(r5.getName()));
+
+		assertTrue(roleDao.deleteRole(r2, true));
+		roleNames = roleDao.findAllRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(2, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
 	}
 	
 	@Test
@@ -87,34 +172,30 @@ public class RoleDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to delete role: role not found.");
 		
-		roleDao.deleteRole(null);
+		roleDao.deleteRole(null, false);
 	}
 	
 	@Test
-	public void testDeleteRoleWithNullName() {
+	public void testDeleteRoleWithNullId() {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to delete role: role not found.");
 		
-		roleDao.deleteRole( new Role() );
+		roleDao.deleteRole( new Role(), false );
 	}
 	
 	@Test
 	public void testDeleteNotPersistedRole() {
 		expectedEx.expect(IllegalArgumentException.class);
-		expectedEx.expectMessage("Unable to delete role: role with ID 123 not found.");
+		expectedEx.expectMessage("Unable to delete role: role with ID " + r1.getId() + " not found.");
 		
-		Role role = new Role("role");
-		role.setId("123");
-		roleDao.deleteRole(role);
+		roleDao.deleteRole(r1, false);
+		roleDao.deleteRole(r1, false);
 	}
 	
 	@Test
 	public void testUpdateRoleName() {
-		Role role = new Role("role");
-		roleDao.createRole(role);
-		
-		assertTrue(roleDao.updateRoleName(role.getId(), "role1"));
-		assertEquals("role1", roleDao.findRoleById(role.getId()).getName() );
+		assertTrue(roleDao.updateRoleName(r1.getId(), "role24"));
+		assertEquals("role24", roleDao.findRoleById(r1.getId()).getName() );
 	}
 	
 	@Test
@@ -123,32 +204,90 @@ public class RoleDaoTest {
 		expectedEx.expectMessage("Unable to update role: role with ID 123 not found.");
 		
 		assertTrue(roleDao.updateRoleName("123", "role1"));
-		assertEquals("role1", roleDao.findRoleById("123").getName() );
 	}
 	
 	@Test
 	public void findAllRoles() {
-		assertTrue(roleDao.findAllRoles().isEmpty());
+		assertEquals(5,roleDao.findAllRoles().size());
 		
-		roleDao.createRole(new Role("r1"));
+		roleDao.createRole(new Role("role6"));
 		Set<String> roleNames = roleDao.findAllRoles().stream().map( r -> r.getName()).collect(Collectors.toSet());
-		assertEquals(1, roleNames.size());
-		assertTrue( roleNames.contains("r1"));
+		assertEquals(6, roleNames.size());
+		assertTrue( roleNames.contains("role1"));
+		assertTrue( roleNames.contains("role2"));
+		assertTrue( roleNames.contains("role3"));
+		assertTrue( roleNames.contains("role4"));
+		assertTrue( roleNames.contains("role5"));
+		assertTrue( roleNames.contains("role6"));
 		
-		roleDao.createRole(new Role("r2"));
-		roleDao.createRole(new Role("r3"));
+		roleDao.createRole(new Role("role7"));
+		roleDao.createRole(new Role("role8"));
 		roleNames = roleDao.findAllRoles().stream().map( r -> r.getName()).collect(Collectors.toSet());
-		assertEquals(3, roleNames.size());
-		assertTrue( roleNames.contains("r1"));
-		assertTrue( roleNames.contains("r2"));
-		assertTrue( roleNames.contains("r3"));
+		assertEquals(8, roleNames.size());
+		assertTrue( roleNames.contains("role1"));
+		assertTrue( roleNames.contains("role2"));
+		assertTrue( roleNames.contains("role3"));
+		assertTrue( roleNames.contains("role4"));
+		assertTrue( roleNames.contains("role5"));
+		assertTrue( roleNames.contains("role6"));
+		assertTrue( roleNames.contains("role7"));
+		assertTrue( roleNames.contains("role8"));
+	}
+	
+	@Test
+	public void findRolesByFreeSearch() {
+		Role r11 = new Role("role11");
+		Role r21 = new Role("ro21le");
+		Role r31 = new Role("31 role");
+		Role r41 = new Role("41r");
+		roleDao.createRole(r11);
+		roleDao.createRole(r21);
+		roleDao.createRole(r31);
+		roleDao.createRole(r41);
+		
+		Set<String> roleNames = roleDao.findRolesByFreeSearch("1").stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(5, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r11.getName()));
+		assertTrue(roleNames.contains(r21.getName()));
+		assertTrue(roleNames.contains(r31.getName()));
+		assertTrue(roleNames.contains(r41.getName()));
+		
+		roleNames = roleDao.findRolesByFreeSearch("role").stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(7, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r4.getName()));
+		assertTrue(roleNames.contains(r5.getName()));
+		assertTrue(roleNames.contains(r11.getName()));
+		assertTrue(roleNames.contains(r31.getName()));
+		
+		roleNames = roleDao.findRolesByFreeSearch(" ").stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(1, roleNames.size());
+		assertTrue(roleNames.contains(r31.getName()));
+	}
+	
+	@Test
+	public void findRolesByNullFreeSearch() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find roles: text of search cannot be empty.");
+		
+		roleDao.findRolesByFreeSearch(null);
+	}
+	
+	@Test
+	public void findRolesByEmptyFreeSearch() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find roles: text of search cannot be empty.");
+		
+		roleDao.findRolesByFreeSearch("");
 	}
 	
 	@Test
 	public void testFindRoleByName() {
-		roleDao.createRole( new Role("role") );
-		assertNotNull(roleDao.findRoleByName("role"));
-		assertNull(roleDao.findRoleByName("role1"));
+		assertNotNull(roleDao.findRoleByName("role1"));
+		assertNull(roleDao.findRoleByName("role6"));
 	}
 	
 	@Test
@@ -161,9 +300,7 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testFindRoleById() {
-		Role role = new Role("role");
-		roleDao.createRole(role);
-		assertNotNull(roleDao.findRoleById(role.getId()));
+		assertNotNull(roleDao.findRoleById(r1.getId()));
 		assertNull(roleDao.findRoleById("123"));
 	}
 	
@@ -177,25 +314,17 @@ public class RoleDaoTest {
 
 	@Test
 	public void testAddSubRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
 		assertTrue(roleDao.addSubRole(r1, r2));
 	}
 	
 	@Test
 	public void testRemoveSubRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
 		roleDao.addSubRole(r1, r2);
 		assertTrue(roleDao.removeSubRole(r1, r2));
 	}
 	
 	@Test
 	public void testFindAllSubRoles() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
 		roleDao.addSubRole(r2, r4);
@@ -208,10 +337,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testFindDirectSubRoles() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
 		roleDao.addSubRole(r2, r4);
@@ -223,10 +348,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testFindIndirectSubRoles() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
 		roleDao.addSubRole(r2, r4);
@@ -237,11 +358,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testHasSubRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
-		roleDao.createRole(r5);
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
 		roleDao.addSubRole(r2, r4);
@@ -253,11 +369,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testHasDirectSubRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
-		roleDao.createRole(r5);
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
 		roleDao.addSubRole(r2, r4);
@@ -269,11 +380,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testHasIndirectSubRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
-		roleDao.createRole(r5);
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
 		roleDao.addSubRole(r2, r4);
@@ -285,25 +391,17 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testAddManagedRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
 		assertTrue(roleDao.addManagedRole(r1, r2));
 	}
 	
 	@Test
 	public void testRemoveManagedRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
 		roleDao.addManagedRole(r1, r2);
 		assertTrue(roleDao.removeManagedRole(r1, r2));
 	}
 	
 	@Test
 	public void testFindAllManagedRoles() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
 		roleDao.addManagedRole(r2, r4);
@@ -316,10 +414,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testFindDirectManagedRoles() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
 		roleDao.addManagedRole(r2, r4);
@@ -331,10 +425,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testFindIndirectManagedRoles() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
 		roleDao.addManagedRole(r2, r4);
@@ -345,11 +435,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testManagesRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
-		roleDao.createRole(r5);
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
 		roleDao.addManagedRole(r2, r4);
@@ -361,11 +446,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testDirectlyManagesRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
-		roleDao.createRole(r5);
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
 		roleDao.addManagedRole(r2, r4);
@@ -377,11 +457,6 @@ public class RoleDaoTest {
 	
 	@Test
 	public void testIndirectlyManagesRole() {
-		roleDao.createRole(r1);
-		roleDao.createRole(r2);
-		roleDao.createRole(r3);
-		roleDao.createRole(r4);
-		roleDao.createRole(r5);
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
 		roleDao.addManagedRole(r2, r4);
@@ -389,6 +464,10 @@ public class RoleDaoTest {
 		assertFalse(roleDao.indirectlyManagesRole(r1, r3));
 		assertTrue(roleDao.indirectlyManagesRole(r1, r4));
 		assertFalse(roleDao.indirectlyManagesRole(r1, r5));
+	}
+
+	private String stringOf(String id1, String id2) {
+		return id1 + "-" + id2;
 	}
 	
 }
