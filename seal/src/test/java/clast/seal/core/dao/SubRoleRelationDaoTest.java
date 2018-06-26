@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,8 +34,8 @@ public class SubRoleRelationDaoTest {
 	
 	@Before
 	public void setUp() {
-		subRoleRelationDao = new SubRoleRelationDao();
 		roleDao = new RoleDao();
+		subRoleRelationDao = new SubRoleRelationDao(roleDao);
 		r1 = new Role("role1");
 		r2 = new Role("role2");
 		r3 = new Role("role3");
@@ -49,6 +50,11 @@ public class SubRoleRelationDaoTest {
 		roleDao.createRole(r5);
 		roleDao.createRole(r6);
 		roleDao.createRole(r7);
+	}
+	
+	@After
+	public void tearDown() {
+		roleDao.deleteAllRoles();
 	}
 	
 	@Test
@@ -101,6 +107,30 @@ public class SubRoleRelationDaoTest {
 		DirectSubRoleRelation dsrr = createTestSubRoleRelation(r1.getId(), r2.getId());
 		subRoleRelationDao.createSubRoleRelation(dsrr);
 		subRoleRelationDao.createSubRoleRelation(dsrr);
+	}
+	
+	@Test
+	public void testCreateSubRoleRelationWithUnexistingRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create subRole relation: Role and SubRole must be already persisted.");
+		
+		subRoleRelationDao.createSubRoleRelation( createTestSubRoleRelation("123", r2.getId()));
+	}
+	
+	@Test
+	public void testCreateSubRoleRelationWithUnexistingSubRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create subRole relation: Role and SubRole must be already persisted.");
+		
+		subRoleRelationDao.createSubRoleRelation( createTestSubRoleRelation(r1.getId(), "123"));
+	}
+	
+	@Test
+	public void testCreateSubRoleRelationWithUnexistingRoleIdAndSubRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create subRole relation: Role and SubRole must be already persisted.");
+		
+		subRoleRelationDao.createSubRoleRelation( createTestSubRoleRelation("123", "456"));
 	}
 	
 	@Test
@@ -269,6 +299,38 @@ public class SubRoleRelationDaoTest {
 		assertTrue( subRoles.contains( stringOf(r1.getId(), r4.getId())) );
 		assertTrue( subRoles.contains( stringOf(r1.getId(), r5.getId())) );
 		assertTrue( subRoles.contains( stringOf(r1.getId(), r6.getId())) );
+	}
+	
+	@Test
+	public void testDeleteNullSubRoleRelation() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete subRole relation: IDs of role and subRole cannot be null.");
+		
+		subRoleRelationDao.deleteSubRoleRelation(null);
+	}
+	
+	@Test
+	public void testDeleteSubRoleRelationWithNullRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete subRole relation: IDs of role and subRole cannot be null.");
+		
+		subRoleRelationDao.deleteSubRoleRelation( createTestSubRoleRelation(null, r2.getId()));
+	}
+	
+	@Test
+	public void testDeleteSubRoleRelationWithNullSubRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete subRole relation: IDs of role and subRole cannot be null.");
+		
+		subRoleRelationDao.deleteSubRoleRelation( createTestSubRoleRelation(r1.getId(), null));
+	}
+	
+	@Test
+	public void testDeleteSubRoleRelationWithNullRoleIdAndSubRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete subRole relation: IDs of role and subRole cannot be null.");
+		
+		subRoleRelationDao.deleteSubRoleRelation( createTestSubRoleRelation(null, null));
 	}
 	
 	@Test

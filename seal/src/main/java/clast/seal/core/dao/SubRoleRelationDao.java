@@ -13,8 +13,11 @@ import clast.seal.core.model.SubRoleRelationType;
 
 public class SubRoleRelationDao extends BaseDao {
 	
-	public SubRoleRelationDao() {
+	private RoleDao roleDao;
+	
+	public SubRoleRelationDao(RoleDao roleDao) {
 		super();
+		this.roleDao = roleDao;
 	}
 	
 	public boolean createSubRoleRelation(DirectSubRoleRelation subRoleRelation) {
@@ -55,9 +58,9 @@ public class SubRoleRelationDao extends BaseDao {
 				}
 			}
 			
-			em.persist(subRoleRelation);
+			getEntityManager().persist(subRoleRelation);
 			for( IndirectSubRoleRelation indirectSubRoleRelation : indirectSubRoleRelations ) {
-				em.persist(indirectSubRoleRelation);
+				getEntityManager().persist(indirectSubRoleRelation);
 			}
 			
 			return true;
@@ -69,6 +72,10 @@ public class SubRoleRelationDao extends BaseDao {
 	}
 	
 	public boolean deleteSubRoleRelation(DirectSubRoleRelation subRoleRelation) {
+		
+		if( subRoleRelation == null || subRoleRelation.getRoleId() == null || subRoleRelation.getSubRoleId() == null ) {
+			throw new IllegalArgumentException("Unable to delete subRole relation: IDs of role and subRole cannot be null.");
+		}
 		
 		if( findSubRoleRelations(SubRoleRelationType.DIRECT, subRoleRelation.getRoleId(), subRoleRelation.getSubRoleId()).isEmpty() ) {
 			throw new IllegalArgumentException("Unable to delete subRole relation: Direct relation between Role: " + subRoleRelation.getRoleId() + "and SubRole:" + subRoleRelation.getSubRoleId() + " not exist.");
@@ -88,14 +95,14 @@ public class SubRoleRelationDao extends BaseDao {
 			}
 		}
 		
-		em.getTransaction().begin();
+		getEntityManager().getTransaction().begin();
 		for( SubRoleRelation currentSubRoleRelation : subRoleAncestorsRelations ) {
-			em.remove(currentSubRoleRelation);
+			getEntityManager().remove(currentSubRoleRelation);
 		}
 		for( SubRoleRelation currentSubRoleRelation : toDeleteRelations ) {
-			em.remove(currentSubRoleRelation);
+			getEntityManager().remove(currentSubRoleRelation);
 		}
-		em.getTransaction().commit();
+		getEntityManager().getTransaction().commit();
 		
 		return true;
 		
@@ -109,31 +116,31 @@ public class SubRoleRelationDao extends BaseDao {
 		}
 		
 		if( type != null && roleId == null && subRoleId == null ) {
-			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr");
+			Query q = getEntityManager().createQuery("select srr from " + type.getQueryValue() + " srr");
 			return new HashSet<>(q.getResultList());
 		}else if( type != null && roleId != null && subRoleId == null ) {
-			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr where srr.roleId = :roleId");
+			Query q = getEntityManager().createQuery("select srr from " + type.getQueryValue() + " srr where srr.roleId = :roleId");
 			q.setParameter("roleId", roleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type != null && roleId == null && subRoleId != null ) {
-			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr where srr.subRoleId = :subRoleId");
+			Query q = getEntityManager().createQuery("select srr from " + type.getQueryValue() + " srr where srr.subRoleId = :subRoleId");
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type != null && roleId != null && subRoleId != null ) {
-			Query q = em.createQuery("select srr from " + type.getQueryValue() + " srr where srr.roleId = :roleId and srr.subRoleId = :subRoleId");
+			Query q = getEntityManager().createQuery("select srr from " + type.getQueryValue() + " srr where srr.roleId = :roleId and srr.subRoleId = :subRoleId");
 			q.setParameter("roleId", roleId);
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type == null && roleId != null && subRoleId == null ) {
-			Query q = em.createQuery("select srr from SubRoleRelation srr where srr.roleId = :roleId");
+			Query q = getEntityManager().createQuery("select srr from SubRoleRelation srr where srr.roleId = :roleId");
 			q.setParameter("roleId", roleId);
 			return new HashSet<>(q.getResultList());
 		}else if( type == null && roleId == null && subRoleId != null ) {
-			Query q = em.createQuery("select srr from SubRoleRelation srr where srr.subRoleId = :subRoleId");
+			Query q = getEntityManager().createQuery("select srr from SubRoleRelation srr where srr.subRoleId = :subRoleId");
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
 		}else {
-			Query q = em.createQuery("select srr from SubRoleRelation srr where srr.roleId = :roleId and srr.subRoleId = :subRoleId");
+			Query q = getEntityManager().createQuery("select srr from SubRoleRelation srr where srr.roleId = :roleId and srr.subRoleId = :subRoleId");
 			q.setParameter("roleId", roleId);
 			q.setParameter("subRoleId", subRoleId);
 			return new HashSet<>(q.getResultList());
@@ -148,6 +155,10 @@ public class SubRoleRelationDao extends BaseDao {
 		
 		if( srr.getId() != null ) {
 			throw new IllegalArgumentException("Passed SubRoleRelation already persisted.");
+		}
+		
+		if( roleDao.findRoleById(srr.getRoleId()) == null || roleDao.findRoleById(srr.getSubRoleId()) == null ) {
+			throw new IllegalArgumentException("Role and SubRole must be already persisted.");
 		}
 		
 		if( srr.getRoleId().equals(srr.getSubRoleId()) ) {

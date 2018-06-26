@@ -1,7 +1,12 @@
 package clast.seal.core.dao;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,9 +42,9 @@ public class UserRoleRelationDaoTest {
 	@Before
 	public void setUp() {
 		
-		userRoleRelationDao = new UserRoleRelationDao();
 		userDao = new UserDao();
 		roleDao = new RoleDao();
+		userRoleRelationDao = new UserRoleRelationDao(userDao, roleDao);
 		
 		u1 = new User("usr1", "pwd1");
 		u2 = new User("usr2", "pwd2");
@@ -73,6 +78,12 @@ public class UserRoleRelationDaoTest {
 		roleDao.addSubRole(r5, r6);
 	}
 	
+	@After
+	public void tearDown() {
+		userDao.deleteAllUsers();
+		roleDao.deleteAllRoles();
+	}
+	
 	@Test
 	public void createUserRoleRelation() {
 		assertTrue(userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r4.getId())));
@@ -85,9 +96,27 @@ public class UserRoleRelationDaoTest {
 		assertTrue(userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r4.getId())));
 		assertTrue(userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r3.getId())));
 
-		
 		assertTrue(userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r3.getId())));
 		assertTrue(userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r1.getId())));
+	
+		Set<String> roleIds = userRoleRelationDao.findUserRoleRelations(u1.getId(), null).stream().map( urr -> urr.getRoleId() ).collect(Collectors.toSet());
+		assertEquals(3, roleIds.size());
+		assertTrue(roleIds.contains(r1.getId()));
+		assertTrue(roleIds.contains(r5.getId()));
+		assertTrue(roleIds.contains(r7.getId()));
+
+		roleIds = userRoleRelationDao.findUserRoleRelations(u2.getId(), null).stream().map( urr -> urr.getRoleId() ).collect(Collectors.toSet());
+		assertEquals(2, roleIds.size());
+		assertTrue(roleIds.contains(r3.getId()));
+		assertTrue(roleIds.contains(r4.getId()));
+		
+		roleIds = userRoleRelationDao.findUserRoleRelations(u3.getId(), null).stream().map( urr -> urr.getRoleId() ).collect(Collectors.toSet());
+		assertEquals(0, roleIds.size());
+		
+		roleIds = userRoleRelationDao.findUserRoleRelations(u4.getId(), null).stream().map( urr -> urr.getRoleId() ).collect(Collectors.toSet());
+		assertEquals(1, roleIds.size());
+		assertTrue(roleIds.contains(r1.getId()));
+		
 	}
 	
 	
@@ -126,14 +155,221 @@ public class UserRoleRelationDaoTest {
 	@Test
 	public void testCreatePersistedUserRoleRelation() {
 		expectedEx.expect(IllegalArgumentException.class);
-		expectedEx.expectMessage("UserRoleRelation is already persisted.");
+		expectedEx.expectMessage("Unable to create user-role relation: UserRoleRelation is already persisted.");
 		
 		UserRoleRelation urr = createTestUserRoleRelation(u1.getId(), r1.getId());
 		userRoleRelationDao.createUserRoleRelation(urr);
 		userRoleRelationDao.createUserRoleRelation(urr);
 	}
 	
-	//TODO completare i test. VEDI ANCHE TODO SUL QUADERNO !!
+	@Test
+	public void testCreateUserRoleRelationWithUnexistingUserId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create user-role relation: User and Role to associate must already be persisted.");
+		
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), "123"));
+	}
+	
+	@Test
+	public void testCreateUserRoleRelationWithUnexistingRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create user-role relation: User and Role to associate must already be persisted.");
+		
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation("123", r1.getId()));
+	}
+	
+	@Test
+	public void testCreateUserRoleRelationWithUnexistingUserIdAndRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create user-role relation: User and Role to associate must already be persisted.");
+		
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation("123", "456"));
+	}
+	
+	@Test
+	public void testCreateExistingUserRoleRelation() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create user-role relation: Role: " + r1.getId() + " is already assigned to User: " + u1.getId());
+		
+		userRoleRelationDao.createUserRoleRelation( createTestUserRoleRelation(u1.getId(), r1.getId()) );
+		userRoleRelationDao.createUserRoleRelation( createTestUserRoleRelation(u1.getId(), r1.getId()) );
+	}
+	
+	@Test
+	public void testCreateUserSubRoleRelation() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create user-role relation: Role: " + r2.getId() + " is SubRole of Role: " + r1.getId() + ", already assigned to User: " + u1.getId());
+		
+		userRoleRelationDao.createUserRoleRelation( createTestUserRoleRelation(u1.getId(), r1.getId()) );
+		userRoleRelationDao.createUserRoleRelation( createTestUserRoleRelation(u1.getId(), r2.getId()) );
+	}
+	
+	@Test
+	public void testDeleteUserRoleRelation() {
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r3.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r4.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r2.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r6.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r1.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r5.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
+		
+		userRoleRelationDao.deleteUserRoleRelation(createTestUserRoleRelation(u1.getId(), r3.getId()));
+		userRoleRelationDao.deleteUserRoleRelation(createTestUserRoleRelation(u2.getId(), r6.getId()));
+		userRoleRelationDao.deleteUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
+		
+		Set<String> roleIds = userRoleRelationDao.findUserRoleRelations(u1.getId(), null).stream().map( urr -> urr.getRoleId() ).collect(Collectors.toSet());
+		assertEquals(1, roleIds.size());
+		assertTrue(roleIds.contains(r4.getId()));
+
+		roleIds = userRoleRelationDao.findUserRoleRelations(u2.getId(), null).stream().map( urr -> urr.getRoleId() ).collect(Collectors.toSet());
+		assertEquals(1, roleIds.size());
+		assertTrue(roleIds.contains(r2.getId()));
+		
+		roleIds = userRoleRelationDao.findUserRoleRelations(u4.getId(), null).stream().map( urr -> urr.getRoleId() ).collect(Collectors.toSet());
+		assertEquals(2, roleIds.size());
+		assertTrue(roleIds.contains(r1.getId()));
+		assertTrue(roleIds.contains(r5.getId()));
+	}
+	
+	@Test
+	public void testDeleteNullUserRoleRelation() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: IDs of user and role cannot be null.");
+		
+		userRoleRelationDao.deleteUserRoleRelation(null);
+	}
+	
+	@Test
+	public void testDeleteUserRoleRelationWithNullUserId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: IDs of user and role cannot be null.");
+		
+		userRoleRelationDao.deleteUserRoleRelation( createTestUserRoleRelation(null, r1.getId()));
+	}
+	
+	@Test
+	public void testDeleteUserRoleRelationWithNullRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: IDs of user and role cannot be null.");
+		
+		userRoleRelationDao.deleteUserRoleRelation( createTestUserRoleRelation(u1.getId(), null));
+	}
+	
+	@Test
+	public void testDeleteUserRoleRelationWithNullUserIdAndRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: IDs of user and role cannot be null.");
+		
+		userRoleRelationDao.deleteUserRoleRelation( createTestUserRoleRelation(null, null));
+	}
+	
+	@Test
+	public void testDeleteUnexistingUserRoleRelation1() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: Relation between User: " + u1.getId() + " and Role: " + r1.getId() + " not exist.");
+		
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r3.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r4.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r2.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r6.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r1.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r5.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
+		
+		userRoleRelationDao.deleteUserRoleRelation(createTestUserRoleRelation(u1.getId(), r1.getId()));
+	}
+	
+	@Test
+	public void testDeleteUnexistingUserRoleRelation2() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: Relation between User: " + u2.getId() + " and Role: " + r5.getId() + " not exist.");
+		
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r3.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r4.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r2.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r6.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r1.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r5.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
+		
+		userRoleRelationDao.deleteUserRoleRelation(createTestUserRoleRelation(u2.getId(), r5.getId()));
+	}
+	
+	@Test
+	public void testDeleteUnexistingUserRoleRelation3() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: Relation between User: " + u3.getId() + " and Role: " + r1.getId() + " not exist.");
+		
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r3.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r4.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r2.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r6.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r1.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r5.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
+		
+		userRoleRelationDao.deleteUserRoleRelation(createTestUserRoleRelation(u3.getId(), r1.getId()));
+	}
+	
+	@Test
+	public void testDeleteUnexistingUserRoleRelation4() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user-role relation: Relation between User: " + u4.getId() + " and Role: " + r4.getId() + " not exist.");
+		
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r3.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r4.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r2.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r6.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r1.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r5.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
+		
+		userRoleRelationDao.deleteUserRoleRelation(createTestUserRoleRelation(u4.getId(), r4.getId()));
+	}
+	
+	@Test
+	public void testFindUserRoleRelations() {
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r3.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u1.getId(), r4.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r4.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r6.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u2.getId(), r7.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u3.getId(), r7.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r1.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r5.getId()));
+		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
+		
+		Set<String> roleIds = userRoleRelationDao.findUserRoleRelations(null, null).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertEquals(9, roleIds.size());
+		assertTrue(roleIds.contains(stringOf(u1.getId(), r3.getId())));
+		assertTrue(roleIds.contains(stringOf(u1.getId(), r4.getId())));
+		assertTrue(roleIds.contains(stringOf(u2.getId(), r4.getId())));
+		assertTrue(roleIds.contains(stringOf(u2.getId(), r6.getId())));
+		assertTrue(roleIds.contains(stringOf(u2.getId(), r7.getId())));
+		assertTrue(roleIds.contains(stringOf(u3.getId(), r7.getId())));
+		assertTrue(roleIds.contains(stringOf(u4.getId(), r1.getId())));
+		assertTrue(roleIds.contains(stringOf(u4.getId(), r5.getId())));
+		assertTrue(roleIds.contains(stringOf(u4.getId(), r7.getId())));
+		
+		roleIds = userRoleRelationDao.findUserRoleRelations(null, r7.getId()).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertEquals(3, roleIds.size());
+		assertTrue(roleIds.contains(stringOf(u2.getId(), r7.getId())));
+		assertTrue(roleIds.contains(stringOf(u3.getId(), r7.getId())));
+		assertTrue(roleIds.contains(stringOf(u4.getId(), r7.getId())));
+		
+		roleIds = userRoleRelationDao.findUserRoleRelations(u1.getId(), null).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertEquals(2, roleIds.size());
+		assertTrue(roleIds.contains(stringOf(u1.getId(), r3.getId())));
+		assertTrue(roleIds.contains(stringOf(u1.getId(), r4.getId())));
+		
+		roleIds = userRoleRelationDao.findUserRoleRelations(u2.getId(), r6.getId()).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertEquals(1, roleIds.size());
+		assertTrue(roleIds.contains(stringOf(u2.getId(), r6.getId())));
+		
+		roleIds = userRoleRelationDao.findUserRoleRelations(u2.getId(), r5.getId()).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertEquals(0, roleIds.size());
+	}
 
 	private UserRoleRelation createTestUserRoleRelation(String userId, String roleId) {
 		UserRoleRelation urr = new UserRoleRelation();

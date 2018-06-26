@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,8 +33,8 @@ public class ManagedRoleRelationDaoTest {
 	
 	@Before
 	public void setUp() {
-		managedRoleRelationDao = new ManagedRoleRelationDao();
 		roleDao = new RoleDao();
+		managedRoleRelationDao = new ManagedRoleRelationDao(roleDao);
 		r1 = new Role("role1");
 		r2 = new Role("role2");
 		r3 = new Role("role3");
@@ -48,6 +49,11 @@ public class ManagedRoleRelationDaoTest {
 		roleDao.createRole(r5);
 		roleDao.createRole(r6);
 		roleDao.createRole(r7);
+	}
+	
+	@After
+	public void tearDown() {
+		roleDao.deleteAllRoles();
 	}
 	
 	@Test
@@ -102,6 +108,30 @@ public class ManagedRoleRelationDaoTest {
 		ManagedRoleRelation dmrr = createTestManagedRoleRelation(r1.getId(), r2.getId());
 		managedRoleRelationDao.createManagedRoleRelation(dmrr);
 		managedRoleRelationDao.createManagedRoleRelation(dmrr);
+	}
+	
+	@Test
+	public void testCreateManagedRoleRelationWithUnexistingRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create managedRole relation: Role and ManagedRole must be already persisted.");
+		
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation("123", r2.getId()));
+	}
+	
+	@Test
+	public void testCreateManagedRoleRelationWithUnexistingManagedRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create managedRole relation: Role and ManagedRole must be already persisted.");
+		
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation(r1.getId(), "123"));
+	}
+	
+	@Test
+	public void testCreateManagedRoleRelationWithUnexistingUserIdAndManagedRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to create managedRole relation: Role and ManagedRole must be already persisted.");
+		
+		managedRoleRelationDao.createManagedRoleRelation(createTestManagedRoleRelation("123", "456"));
 	}
 	
 	@Test
@@ -207,6 +237,38 @@ public class ManagedRoleRelationDaoTest {
 		assertTrue( managedRoles.contains( stringOf(r2.getId(), r1.getId()) ) );
 		assertTrue( managedRoles.contains( stringOf(r2.getId(), r3.getId()) ) );
 		assertTrue( managedRoles.contains( stringOf(r3.getId(), r2.getId()) ) );
+	}
+	
+	@Test
+	public void testDeleteNullManagedRelation() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete managedRole relation: IDs of role and managedRole cannot be null.");
+		
+		managedRoleRelationDao.deleteManagedRoleRelation(null);
+	}
+	
+	@Test
+	public void testDeleteManagedRelationWithNullRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete managedRole relation: IDs of role and managedRole cannot be null.");
+		
+		managedRoleRelationDao.deleteManagedRoleRelation( createTestManagedRoleRelation(null, r2.getId()));
+	}
+	
+	@Test
+	public void testDeleteManagedRelationWithNullManagedRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete managedRole relation: IDs of role and managedRole cannot be null.");
+		
+		managedRoleRelationDao.deleteManagedRoleRelation( createTestManagedRoleRelation(r1.getId(), null));
+	}
+	
+	@Test
+	public void testDeleteManagedRelationWithNullRoleIdAndManagedRoleId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete managedRole relation: IDs of role and managedRole cannot be null.");
+		
+		managedRoleRelationDao.deleteManagedRoleRelation( createTestManagedRoleRelation(null, null));
 	}
 	
 	@Test

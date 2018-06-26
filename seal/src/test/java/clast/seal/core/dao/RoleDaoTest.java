@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,8 +35,8 @@ public class RoleDaoTest {
 	@Before
 	public void setUp() {
 		roleDao = new RoleDao();
-		subRoleRelationDao = new SubRoleRelationDao();
-		managedRoleRelationDao = new ManagedRoleRelationDao();
+		subRoleRelationDao = new SubRoleRelationDao(roleDao);
+		managedRoleRelationDao = new ManagedRoleRelationDao(roleDao);
 		r1 = new Role("role1");
 		r2 = new Role("role2");
 		r3 = new Role("role3");
@@ -46,6 +47,11 @@ public class RoleDaoTest {
 		roleDao.createRole(r3);
 		roleDao.createRole(r4);
 		roleDao.createRole(r5);
+	}
+	
+	@After
+	public void tearDown() {
+		roleDao.deleteAllRoles();
 	}
 
 	@Test
@@ -190,6 +196,12 @@ public class RoleDaoTest {
 		
 		roleDao.deleteRole(r1, false);
 		roleDao.deleteRole(r1, false);
+	}
+	
+	@Test
+	public void testDeleteAllRoles() {
+		assertTrue(roleDao.deleteAllRoles());
+		assertTrue(roleDao.findAllRoles().isEmpty());
 	}
 	
 	@Test

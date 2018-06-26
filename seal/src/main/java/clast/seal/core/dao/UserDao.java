@@ -1,21 +1,26 @@
 package clast.seal.core.dao;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
+import clast.seal.core.model.Role;
 import clast.seal.core.model.User;
 import clast.seal.core.model.UserRoleRelation;
 
 public class UserDao  extends BaseDao {
 	
+	private RoleDao roleDao;
 	private UserRoleRelationDao userRoleRelationDao;
 	
 	public UserDao() {
 		super();
-		userRoleRelationDao = new UserRoleRelationDao();
+		roleDao = new RoleDao();
+		userRoleRelationDao = new UserRoleRelationDao(this, roleDao);
 	}
 	
 	public boolean createUser(User user) {
@@ -24,7 +29,7 @@ public class UserDao  extends BaseDao {
 			
 			checkNewUser(user);
 			
-			em.persist(user);
+			getEntityManager().persist(user);
 			
 			return true;
 			
@@ -61,7 +66,7 @@ public class UserDao  extends BaseDao {
 		
 		User u;
 		try {
-			u = em.find(User.class, user.getId());			
+			u = getEntityManager().find(User.class, user.getId());			
 		}catch (Exception e) {
 			throw new IllegalArgumentException("Unable to delete user: user not found.");
 		}
@@ -70,13 +75,21 @@ public class UserDao  extends BaseDao {
 			throw new IllegalArgumentException("Unable to delete user: user with ID " + user.getId() + " not found.");
 		}
 		
-		em.getTransaction().begin();
+		getEntityManager().getTransaction().begin();
 		for( UserRoleRelation urr : userRoleRelationDao.findUserRoleRelations(user.getId(), null) ) {
-			em.remove(urr);
+			getEntityManager().remove(urr);
 		}
-		em.remove(u);
-		em.getTransaction().commit();			
+		getEntityManager().remove(u);
+		getEntityManager().getTransaction().commit();			
 		
+		return true;
+	}
+	
+	public boolean deleteAllUsers() {
+		Iterator<User> allUsersIterator = findAllUsers().iterator();
+		while( allUsersIterator.hasNext() ) {
+			deleteUser(allUsersIterator.next());
+		}
 		return true;
 	}
 	
@@ -93,9 +106,9 @@ public class UserDao  extends BaseDao {
 			u.setEmail(user.getEmail());
 			u.setPhone(user.getPhone());
 			
-			em.getTransaction().begin();
-			em.merge(u);
-			em.getTransaction().commit();
+			getEntityManager().getTransaction().begin();
+			getEntityManager().merge(u);
+			getEntityManager().getTransaction().commit();
 			
 			return true;
 			
@@ -115,7 +128,7 @@ public class UserDao  extends BaseDao {
 			throw new IllegalArgumentException("User not persisted.");
 		}
 		
-		User u = em.find(User.class, user.getId());			
+		User u = getEntityManager().find(User.class, user.getId());			
 		
 		if( u == null ) {
 			throw new IllegalArgumentException("User with ID " + user.getId() + " not found.");
@@ -138,7 +151,7 @@ public class UserDao  extends BaseDao {
 	}
 	
 	public Set<User> findAllUsers(){
-		TypedQuery<User> q = em.createQuery("select u from User u", User.class);
+		TypedQuery<User> q = getEntityManager().createQuery("select u from User u", User.class);
 		return new HashSet<>(q.getResultList());
 	}
 	
@@ -148,7 +161,7 @@ public class UserDao  extends BaseDao {
 			throw new IllegalArgumentException("Unable to find users: text of search cannot be empty.");
 		}
 		
-		TypedQuery<User> q = em.createQuery("select u from User u where u.username like :text or "
+		TypedQuery<User> q = getEntityManager().createQuery("select u from User u where u.username like :text or "
 				+ "u.name like :text or "
 				+ "u.lastname like :text or "
 				+ "u.email like :text or "
@@ -165,7 +178,7 @@ public class UserDao  extends BaseDao {
 		}
 		
 		try {
-			TypedQuery<User> q = em.createQuery("select u from User u where u.username = :username", User.class);
+			TypedQuery<User> q = getEntityManager().createQuery("select u from User u where u.username = :username", User.class);
 			q.setParameter("username", username);
 			return q.getSingleResult();
 		}catch (NoResultException e) {
@@ -178,8 +191,115 @@ public class UserDao  extends BaseDao {
 			throw new IllegalArgumentException("Unable to find user: user ID cannot be null.");
 		}
 		
-		return em.find(User.class, id);
+		return getEntityManager().find(User.class, id);
 	}
 	
+	public boolean addRole(User user, Role role) {
+		return userRoleRelationDao.createUserRoleRelation( new UserRoleRelation(user.getId(), role.getId()) );
+	}
+	
+	public boolean removeRole(User user, Role role) {
+		return userRoleRelationDao.deleteUserRoleRelation( new UserRoleRelation(user.getId(), role.getId()) );
+	}
+	
+	public Set<Role> findAllRoles(User user) {
+		Set<Role> roles = findDirectRoles(user);
+		roles.addAll(findIndirectRoles(user));
+		return roles;
+	}
+
+	public Set<Role> findDirectRoles(User user) {
+		Set<UserRoleRelation> userRoleRelations = userRoleRelationDao.findUserRoleRelations(user.getId(), null);
+		Set<Role> directRoles = new HashSet<>();
+		for( UserRoleRelation userRoleRelation : userRoleRelations ) {
+			directRoles.add( roleDao.findRoleById(userRoleRelation.getRoleId()) );
+		}
+		return directRoles;
+	}
+	
+	public Set<Role> findIndirectRoles(User user) {
+		Set<Role> indirectRoles = new HashSet<>();
+		Iterator<Role> iterator = findDirectRoles(user).iterator();
+		while ( iterator.hasNext() ) {
+			indirectRoles.addAll( roleDao.findAllSubRoles(iterator.next()) );
+		}
+		return indirectRoles;
+	}
+	
+	public boolean hasRole(User user, Role role) {
+		return findAllRoles(user)
+				.stream()
+					.map( r -> r.getId() )
+					.collect( Collectors.toSet() )
+				.contains(role.getId());
+	}
+	
+	public boolean directlyHasRole(User user, Role role) {
+		return findDirectRoles(user)
+				.stream()
+					.map( r -> r.getId() )
+					.collect( Collectors.toSet() )
+				.contains(role.getId());
+	}
+	
+	public boolean indirectlyHasRole(User user, Role role) {
+		return findIndirectRoles(user)
+				.stream()
+				.map( r -> r.getId() )
+				.collect( Collectors.toSet() )
+				.contains(role.getId());
+	}
+	
+	public Set<Role> findManagedRoles(User user) {
+		
+		if( user == null || user.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find managed roles: User ID cannot be null.");
+		}
+		
+		Set<Role> managedRoles = new HashSet<>();
+		for( Role role : findAllRoles(user) ) {
+			managedRoles.addAll( roleDao.findAllManagedRoles(role) );
+		}
+		return managedRoles;
+	}
+	
+	public Set<User> findManagedUsers(User user) {
+		
+		if( user == null || user.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find managed users: User ID cannot be null.");
+		}
+		
+		Set<User> managedUsers = new HashSet<>();
+		for( Role role : findManagedRoles(user) ) {
+			for( UserRoleRelation urr : userRoleRelationDao.findUserRoleRelations(null, role.getId()) ) {
+				managedUsers.add( findUserById(urr.getUserId()) );
+			}
+		}
+		return managedUsers;
+	}
+	
+	public Set<User> findManagedUsersByRole(User user, Role role) {
+		
+		if( user == null || user.getId() == null || role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find managed users by role: IDs of user and role cannot be null.");
+		}
+
+		if( !userHasRole(user, role) ) {
+			throw new IllegalArgumentException("Unable to find managed users by role: User: " + user.getId() + " not has Role: " + role.getId());
+		}
+		
+		Set<User> managedUsers = new HashSet<>();
+		for( Role managedRole : roleDao.findAllManagedRoles(role) ) {
+			for( UserRoleRelation urr : userRoleRelationDao.findUserRoleRelations(null, managedRole.getId()) ) {
+				managedUsers.add( findUserById(urr.getUserId()) );
+			}
+		}
+		return managedUsers;
+	}
+
+	private boolean userHasRole(User user, Role role) {
+		Set<String> roleIds = findAllRoles(user).stream().map( r -> r.getId() ).collect(Collectors.toSet());
+		return roleIds.contains(role.getId());
+	}
 	
 }

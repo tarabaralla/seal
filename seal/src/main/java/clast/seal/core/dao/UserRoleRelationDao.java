@@ -11,11 +11,13 @@ import clast.seal.core.model.UserRoleRelation;
 
 public class UserRoleRelationDao extends BaseDao {
 	
+	private UserDao userDao;
 	private RoleDao roleDao;
 	
-	public UserRoleRelationDao() {
+	public UserRoleRelationDao(UserDao userDao, RoleDao roleDao) {
 		super();
-		roleDao = new RoleDao();
+		this.userDao = userDao;
+		this.roleDao = roleDao;
 	}
 
 	public boolean createUserRoleRelation(UserRoleRelation userRoleRelation) {
@@ -26,16 +28,16 @@ public class UserRoleRelationDao extends BaseDao {
 			
 			Iterator<UserRoleRelation> iterator = findUserRoleRelations(userRoleRelation.getUserId(), null).iterator();
 			
-			em.getTransaction().begin();
+			getEntityManager().getTransaction().begin();
 			while( iterator.hasNext() ) {
 				UserRoleRelation urr = iterator.next();
 				if( roleDao.hasSubRole(roleDao.findRoleById(userRoleRelation.getRoleId()), roleDao.findRoleById(urr.getRoleId())) ) {
-					em.remove(urr);
+					getEntityManager().remove(urr);
 				}
 			}
-			em.getTransaction().commit();
+			getEntityManager().getTransaction().commit();
 			
-			em.persist(userRoleRelation);
+			getEntityManager().persist(userRoleRelation);
 			
 			return true;
 			
@@ -47,15 +49,19 @@ public class UserRoleRelationDao extends BaseDao {
 	
 	public boolean deleteUserRoleRelation(UserRoleRelation userRoleRelation) {
 		
+		if( userRoleRelation == null || userRoleRelation.getUserId() == null || userRoleRelation.getRoleId() == null ) {
+			throw new IllegalArgumentException("Unable to delete user-role relation: IDs of user and role cannot be null.");
+		}
+		
 		Set<UserRoleRelation> urrToDelete = findUserRoleRelations(userRoleRelation.getUserId(), userRoleRelation.getRoleId());
 		
 		if( urrToDelete.isEmpty() ) {
-			throw new IllegalArgumentException("Unable to delete user-role relation: Relation between User: " + userRoleRelation.getUserId() + "and Role:" + userRoleRelation.getRoleId() + " not exist.");
+			throw new IllegalArgumentException("Unable to delete user-role relation: Relation between User: " + userRoleRelation.getUserId() + " and Role: " + userRoleRelation.getRoleId() + " not exist.");
 		}
 		
-		em.getTransaction().begin();
-		em.remove(urrToDelete.iterator().next());
-		em.getTransaction().commit();
+		getEntityManager().getTransaction().begin();
+		getEntityManager().remove(urrToDelete.iterator().next());
+		getEntityManager().getTransaction().commit();
 		
 		return true;
 		
@@ -65,18 +71,18 @@ public class UserRoleRelationDao extends BaseDao {
 	public Set<UserRoleRelation> findUserRoleRelations(String userId, String roleId) {
 		
 		if( userId == null && roleId == null ) {
-			Query q = em.createQuery("select urr from UserRoleRelation urr");
+			Query q = getEntityManager().createQuery("select urr from UserRoleRelation urr");
 			return new HashSet<>(q.getResultList());
 		} else if( userId != null && roleId == null ) {
-			Query q = em.createQuery("select urr from UserRoleRelation urr where urr.userId = :userId");
+			Query q = getEntityManager().createQuery("select urr from UserRoleRelation urr where urr.userId = :userId");
 			q.setParameter("userId", userId);
 			return new HashSet<>(q.getResultList());
 		}else if( userId == null && roleId != null ) {
-			Query q = em.createQuery("select urr from UserRoleRelation urr where urr.roleId = :roleId");
+			Query q = getEntityManager().createQuery("select urr from UserRoleRelation urr where urr.roleId = :roleId");
 			q.setParameter("roleId", roleId);
 			return new HashSet<>(q.getResultList());
 		}else {
-			Query q = em.createQuery("select urr from UserRoleRelation urr where urr.userId = :userId and urr.roleId = :roleId");
+			Query q = getEntityManager().createQuery("select urr from UserRoleRelation urr where urr.userId = :userId and urr.roleId = :roleId");
 			q.setParameter("userId", userId);
 			q.setParameter("roleId", roleId);
 			return new HashSet<>(q.getResultList());
@@ -91,6 +97,10 @@ public class UserRoleRelationDao extends BaseDao {
 		
 		if( urr.getId() != null ) {
 			throw new IllegalArgumentException("UserRoleRelation is already persisted.");
+		}
+		
+		if( userDao.findUserById(urr.getUserId()) == null || roleDao.findRoleById(urr.getRoleId()) == null) {
+			throw new IllegalArgumentException("User and Role to associate must already be persisted.");
 		}
 		
 		if( !findUserRoleRelations(urr.getUserId(), urr.getRoleId()).isEmpty() ) {

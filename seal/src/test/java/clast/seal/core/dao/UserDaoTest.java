@@ -1,6 +1,7 @@
 package clast.seal.core.dao;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -8,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,6 +22,7 @@ public class UserDaoTest {
 
 	private UserDao userDao;
 	private RoleDao roleDao;
+	private UserRoleRelationDao userRoleRelationDao;
 	
 	private User u1;
 	private User u2;
@@ -41,6 +44,7 @@ public class UserDaoTest {
 		
 		userDao = new UserDao();
 		roleDao = new RoleDao();
+		userRoleRelationDao = new UserRoleRelationDao(userDao, roleDao);
 		
 		u1 = new User("usr1", "pwd1");
 		u2 = new User("usr2", "pwd2");
@@ -63,6 +67,12 @@ public class UserDaoTest {
 		roleDao.createRole(r3);
 		roleDao.createRole(r4);
 		roleDao.createRole(r5);
+	}
+	
+	@After
+	public void tearDown() {
+		userDao.deleteAllUsers();
+		roleDao.deleteAllRoles();
 	}
 	
 	@Test
@@ -131,7 +141,17 @@ public class UserDaoTest {
 	@Test
 	public void testDeleteUser() {
 		
-		//TODO estendere con verifica cancellazione ruoli assegnati all'utente
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		userDao.addRole(u2, r4);
+		userDao.addRole(u2, r3);
+		userDao.addRole(u3, r1);
+		userDao.addRole(u4, r2);
+		userDao.addRole(u5, r1);
+		userDao.addRole(u5, r4);
 		
 		Set<String> usernames = userDao.findAllUsers().stream().map( u -> u.getUsername() ).collect(Collectors.toSet());
 		assertEquals(5, usernames.size());
@@ -140,6 +160,17 @@ public class UserDaoTest {
 		assertTrue(usernames.contains(u3.getUsername()));
 		assertTrue(usernames.contains(u4.getUsername()));
 		assertTrue(usernames.contains(u5.getUsername()));
+		
+		Set<String> userRoleRelations = userRoleRelationDao.findUserRoleRelations(null, null).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertEquals(8, userRoleRelations.size());
+		assertTrue(userRoleRelations.contains(stringOf(u1.getId(), r1.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u1.getId(), r5.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u2.getId(), r4.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u2.getId(), r3.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u3.getId(), r1.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u4.getId(), r2.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u5.getId(), r1.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u5.getId(), r4.getId())));
 		
 		assertTrue(userDao.deleteUser(u2));
 		assertTrue(userDao.deleteUser(u4));
@@ -150,12 +181,23 @@ public class UserDaoTest {
 		assertTrue(usernames.contains(u3.getUsername()));
 		assertTrue(usernames.contains(u5.getUsername()));
 		
+		userRoleRelations = userRoleRelationDao.findUserRoleRelations(null, null).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertEquals(5, userRoleRelations.size());
+		assertTrue(userRoleRelations.contains(stringOf(u1.getId(), r1.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u1.getId(), r5.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u3.getId(), r1.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u5.getId(), r1.getId())));
+		assertTrue(userRoleRelations.contains(stringOf(u5.getId(), r4.getId())));
+		
 		assertTrue(userDao.deleteUser(u1));
 		assertTrue(userDao.deleteUser(u3));
 		assertTrue(userDao.deleteUser(u5));
 
 		usernames = userDao.findAllUsers().stream().map( u -> u.getUsername() ).collect(Collectors.toSet());
 		assertTrue(usernames.isEmpty());
+		
+		userRoleRelations = userRoleRelationDao.findUserRoleRelations(null, null).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
+		assertTrue(userRoleRelations.isEmpty());
 	}
 	
 	@Test
@@ -181,6 +223,12 @@ public class UserDaoTest {
 		
 		userDao.deleteUser(u1);
 		userDao.deleteUser(u1);
+	}
+	
+	@Test
+	public void testDeleteAllUsers() {
+		assertTrue(userDao.deleteAllUsers());
+		assertTrue(userDao.findAllUsers().isEmpty());
 	}
 	
 	@Test
@@ -365,6 +413,112 @@ public class UserDaoTest {
 		expectedEx.expectMessage("Unable to find user: user ID cannot be null.");
 		
 		userDao.findUserById(null);
+	}
+	
+	@Test
+	public void testAddRole() {
+		assertTrue(userDao.addRole(u1, r1));
+	}
+	
+	@Test
+	public void testRemoveRole() {
+		userDao.addRole(u1, r1);
+		assertTrue(userDao.removeRole(u1, r1));
+	}
+	
+	@Test
+	public void testFindAllRoles() {
+		
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		
+		Set<String> roleNames = userDao.findAllRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(4, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r5.getName()));
+	}
+	
+	@Test
+	public void testFindDirectRoles() {
+		
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		
+		Set<String> roleNames = userDao.findDirectRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(2, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r5.getName()));
+	}
+	
+	@Test
+	public void testFindIndirectRoles() {
+		
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		
+		Set<String> roleNames = userDao.findIndirectRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(2, roleNames.size());
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+	}
+	
+	@Test
+	public void testHasRole() {
+		
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		
+		assertTrue(userDao.hasRole(u1, r1));
+		assertTrue(userDao.hasRole(u1, r2));
+		assertTrue(userDao.hasRole(u1, r3));
+		assertTrue(userDao.hasRole(u1, r5));
+		assertFalse(userDao.hasRole(u1, r4));
+	}
+	
+	@Test
+	public void testDirectlyHasRole() {
+		
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		
+		assertTrue(userDao.directlyHasRole(u1, r1));
+		assertFalse(userDao.directlyHasRole(u1, r2));
+		assertFalse(userDao.directlyHasRole(u1, r3));
+		assertTrue(userDao.directlyHasRole(u1, r5));
+		assertFalse(userDao.directlyHasRole(u1, r4));
+	}
+	
+	@Test
+	public void testIndirectlyHasRole() {
+		
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		
+		assertFalse(userDao.indirectlyHasRole(u1, r1));
+		assertTrue(userDao.indirectlyHasRole(u1, r2));
+		assertTrue(userDao.indirectlyHasRole(u1, r3));
+		assertFalse(userDao.indirectlyHasRole(u1, r5));
+		assertFalse(userDao.indirectlyHasRole(u1, r4));
 	}
 
 	private void verifyUser(User user) {
