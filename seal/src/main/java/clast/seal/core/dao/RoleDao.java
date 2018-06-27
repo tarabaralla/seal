@@ -29,7 +29,7 @@ public class RoleDao extends BaseDao{
 		
 		try {
 
-			checkNewRole(role);
+			checkRoleCreation(role);
 			
 			getEntityManager().persist(role);
 			
@@ -40,7 +40,7 @@ public class RoleDao extends BaseDao{
 		}
 	}
 
-	private void checkNewRole(Role role) {
+	private void checkRoleCreation(Role role) {
 		
 		if( role == null ) {
 			throw new IllegalArgumentException("Role cannot be null.");
@@ -61,24 +61,36 @@ public class RoleDao extends BaseDao{
 	
 	public boolean deleteRole(Role role, boolean cascade) {
 		
+		try {
+			
+			Role r = checkRoleDeletion(role);
+			
+			getEntityManager().getTransaction().begin();
+			delete(r, cascade);
+			getEntityManager().getTransaction().commit();			
+			
+			return true;
+			
+		}catch (Exception e) {
+			throw new IllegalArgumentException("Unable to delete role: " + e.getMessage(), e);
+		}
+	}
+
+	private Role checkRoleDeletion(Role role) {
+		
 		Role r;
+		
 		try {
 			r = getEntityManager().find(Role.class, role.getId());			
 		}catch (Exception e) {
-			throw new IllegalArgumentException("Unable to delete role: role not found.");
+			throw new IllegalArgumentException("role not found.");
 		}
 		
 		if( r == null ) {
-			throw new IllegalArgumentException("Unable to delete role: role with ID " + role.getId() + " not found.");
+			throw new IllegalArgumentException("role with ID " + role.getId() + " not found.");
 		}
 		
-		getEntityManager().getTransaction().begin();
-		
-		delete(r, cascade);
-		
-		getEntityManager().getTransaction().commit();			
-		
-		return true;
+		return r;
 	}
 
 	private void delete(Role role, boolean cascade) {
@@ -110,19 +122,41 @@ public class RoleDao extends BaseDao{
 
 	public boolean updateRoleName(String roleId, String name) {
 		
+		try {
+			
+			Role role = checkRoleUpdate(roleId, name);
+			
+			role.setName(name);
+			
+			getEntityManager().getTransaction().begin();
+			getEntityManager().merge(role);
+			getEntityManager().getTransaction().commit();
+			
+			return true;
+			
+		}catch (Exception e) {
+			throw new IllegalArgumentException("Unable to update role: " + e.getMessage(), e);
+		}
+		
+	}
+
+	private Role checkRoleUpdate(String roleId, String name) {
+		
 		Role role = findRoleById(roleId);
 		
 		if( role == null ) {
-			throw new IllegalArgumentException("Unable to update role: role with ID " + roleId + " not found.");
+			throw new IllegalArgumentException("role with ID " + roleId + " not found.");
 		}
 		
-		role.setName(name);
+		if( name == null ) {
+			throw new IllegalArgumentException("role name cannot be null.");
+		}
 
-		getEntityManager().getTransaction().begin();
-		getEntityManager().merge(role);
-		getEntityManager().getTransaction().commit();
+		if( findRoleByName(name) != null ) {
+			throw new IllegalArgumentException("role name is already assigned to another role.");
+		}
 		
-		return true;
+		return role;
 	}
 	
 	public Set<Role> findAllRoles() {
@@ -187,6 +221,9 @@ public class RoleDao extends BaseDao{
 	}
 	
 	private Set<Role> findSubRoles(SubRoleRelationType subRoleRelationType, Role role) {
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find sub-roles: role ID cannot be null.");
+		}
 		Set<SubRoleRelation> subRoleRelations = subRoleRelationDao.findSubRoleRelations(subRoleRelationType, role.getId(), null);
 		Set<Role> subRoles = new HashSet<>();
 		for( SubRoleRelation subRoleRelation : subRoleRelations ) {
@@ -216,12 +253,18 @@ public class RoleDao extends BaseDao{
 	}
 	
 	public Set<Role> findAllManagedRoles(Role role) {
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find managed roles: role ID cannot be null.");
+		}
 		Set<Role> managedRoles = findDirectManagedRoles(role);
 		managedRoles.addAll(findIndirectManagedRoles(role));
 		return managedRoles;
 	}
 	
 	public Set<Role> findDirectManagedRoles(Role role) {
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find direct managed roles: role ID cannot be null.");
+		}
 		Set<ManagedRoleRelation> managedRoleRelations = managedRoleRelationDao.findManagedRoleRelations(role.getId(), null);
 		Set<Role> managedRoles = new HashSet<>();
 		for( ManagedRoleRelation managedRoleRelation : managedRoleRelations ) {
@@ -231,6 +274,9 @@ public class RoleDao extends BaseDao{
 	}
 	
 	public Set<Role> findIndirectManagedRoles(Role role) {
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find indirect managed roles: role ID cannot be null.");
+		}
 		Set<Role> managedRoles = new HashSet<>();
 		Iterator<Role> iterator = findDirectManagedRoles(role).iterator();
 		while( iterator.hasNext() ) {

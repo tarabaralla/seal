@@ -219,6 +219,22 @@ public class RoleDaoTest {
 	}
 	
 	@Test
+	public void testUpdateRoleWithNullName() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to update role: role name cannot be null.");
+		
+		assertTrue(roleDao.updateRoleName(r1.getId(), null));
+	}
+	
+	@Test
+	public void testUpdateRoleWithOccupiedName() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to update role: role name is already assigned to another role.");
+		
+		assertTrue(roleDao.updateRoleName(r1.getId(), "role2"));
+	}
+	
+	@Test
 	public void findAllRoles() {
 		assertEquals(5,roleDao.findAllRoles().size());
 		
@@ -348,6 +364,22 @@ public class RoleDaoTest {
 	}
 	
 	@Test
+	public void testFindAllSubRolesOfNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find sub-roles: role ID cannot be null.");
+		
+		roleDao.findAllSubRoles(null);
+	}
+	
+	@Test
+	public void testFindAllSubRolesOfRoleWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find sub-roles: role ID cannot be null.");
+		
+		roleDao.findAllSubRoles(new Role("r1234"));
+	}
+	
+	@Test
 	public void testFindDirectSubRoles() {
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
@@ -359,6 +391,22 @@ public class RoleDaoTest {
 	}
 	
 	@Test
+	public void testFindDirectSubRolesOfNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find sub-roles: role ID cannot be null.");
+		
+		roleDao.findDirectSubRoles(null);
+	}
+	
+	@Test
+	public void testFindDirectSubRolesOfRoleWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find sub-roles: role ID cannot be null.");
+		
+		roleDao.findDirectSubRoles(new Role("r1234"));
+	}
+	
+	@Test
 	public void testFindIndirectSubRoles() {
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
@@ -366,6 +414,22 @@ public class RoleDaoTest {
 		Set<String> subRolesNames = roleDao.findIndirectSubRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
 		assertEquals(1, subRolesNames.size());
 		assertTrue(subRolesNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testFindIndirectSubRolesOfNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find sub-roles: role ID cannot be null.");
+		
+		roleDao.findIndirectSubRoles(null);
+	}
+	
+	@Test
+	public void testFindIndirectSubRolesOfRoleWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find sub-roles: role ID cannot be null.");
+		
+		roleDao.findIndirectSubRoles(new Role("r1234"));
 	}
 	
 	@Test
@@ -425,6 +489,22 @@ public class RoleDaoTest {
 	}
 	
 	@Test
+	public void testFindAllManagedRolesOfNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed roles: role ID cannot be null.");
+		
+		roleDao.findAllManagedRoles(null);
+	}
+	
+	@Test
+	public void testFindAllManagedRolesOfRoleWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed roles: role ID cannot be null.");
+		
+		roleDao.findAllManagedRoles(new Role("r1234"));
+	}
+	
+	@Test
 	public void testFindDirectManagedRoles() {
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
@@ -436,6 +516,22 @@ public class RoleDaoTest {
 	}
 	
 	@Test
+	public void testFindDirectManagedRolesOfNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find direct managed roles: role ID cannot be null.");
+		
+		roleDao.findDirectManagedRoles(null);
+	}
+	
+	@Test
+	public void testFindDirectManagedRolesOfRoleWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find direct managed roles: role ID cannot be null.");
+		
+		roleDao.findDirectManagedRoles(new Role("r1234"));
+	}
+	
+	@Test
 	public void testFindIndirectManagedRoles() {
 		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
@@ -443,6 +539,22 @@ public class RoleDaoTest {
 		Set<String> managedRolesNames = roleDao.findIndirectManagedRoles(r1).stream().map( sr -> sr.getName() ).collect(Collectors.toSet());
 		assertEquals(1, managedRolesNames.size());
 		assertTrue(managedRolesNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testFindIndirectManagedRolesOfNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find indirect managed roles: role ID cannot be null.");
+		
+		roleDao.findIndirectManagedRoles(null);
+	}
+	
+	@Test
+	public void testFindIndirectManagedRolesOfRoleWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find indirect managed roles: role ID cannot be null.");
+		
+		roleDao.findIndirectManagedRoles(new Role("r1234"));
 	}
 	
 	@Test

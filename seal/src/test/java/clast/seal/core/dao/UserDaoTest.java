@@ -444,6 +444,22 @@ public class UserDaoTest {
 	}
 	
 	@Test
+	public void testFindAllRolesOfNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find user roles: user must be persisted.");
+		
+		userDao.findAllRoles(null);
+	}
+	
+	@Test
+	public void testFindAllRolesOfUserWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find user roles: user must be persisted.");
+		
+		userDao.findAllRoles(createTestUser());
+	}
+	
+	@Test
 	public void testFindDirectRoles() {
 		
 		roleDao.addSubRole(r1, r2);
@@ -459,6 +475,22 @@ public class UserDaoTest {
 	}
 	
 	@Test
+	public void testFindDirectRolesOfNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find user direct-roles: user must be persisted.");
+		
+		userDao.findDirectRoles(null);
+	}
+	
+	@Test
+	public void testFindDirectRolesOfUserWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find user direct-roles: user must be persisted.");
+		
+		userDao.findDirectRoles(createTestUser());
+	}
+	
+	@Test
 	public void testFindIndirectRoles() {
 		
 		roleDao.addSubRole(r1, r2);
@@ -471,6 +503,22 @@ public class UserDaoTest {
 		assertEquals(2, roleNames.size());
 		assertTrue(roleNames.contains(r2.getName()));
 		assertTrue(roleNames.contains(r3.getName()));
+	}
+	
+	@Test
+	public void testFindIndirectRolesOfNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find user indirect-roles: user must be persisted.");
+		
+		userDao.findIndirectRoles(null);
+	}
+	
+	@Test
+	public void testFindindirectRolesOfUserWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find user indirect-roles: user must be persisted.");
+		
+		userDao.findIndirectRoles(createTestUser());
 	}
 	
 	@Test
@@ -519,6 +567,167 @@ public class UserDaoTest {
 		assertTrue(userDao.indirectlyHasRole(u1, r3));
 		assertFalse(userDao.indirectlyHasRole(u1, r5));
 		assertFalse(userDao.indirectlyHasRole(u1, r4));
+	}
+	
+	@Test
+	public void testFindManagedRoles() {
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r4);
+		roleDao.addManagedRole(r5, r3);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		userDao.addRole(u2, r2);
+		userDao.addRole(u3, r3);
+		userDao.addRole(u4, r4);
+		userDao.addRole(u5, r5);
+		
+		Set<String> managedRoleNames = userDao.findManagedRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(3, managedRoleNames.size());
+		assertTrue(managedRoleNames.contains(r2.getName()));
+		assertTrue(managedRoleNames.contains(r3.getName()));
+		assertTrue(managedRoleNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testFindManagedRolesOfNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed roles: User ID cannot be null.");
+		
+		userDao.findManagedRoles(null);
+	}
+	
+	@Test
+	public void testFindManagedRolesOfUserWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed roles: User ID cannot be null.");
+		
+		userDao.findManagedRoles(createTestUser());
+	}
+	
+	@Test
+	public void testFindManagedUsers() {
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r4);
+		roleDao.addManagedRole(r5, r3);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		userDao.addRole(u2, r2);
+		userDao.addRole(u3, r3);
+		userDao.addRole(u4, r4);
+		userDao.addRole(u5, r5);
+		
+		Set<String> managedUsersIds = userDao.findManagedUsers(u1).stream().map( u -> u.getId() ).collect(Collectors.toSet());
+		assertEquals(5, managedUsersIds.size());
+		assertTrue(managedUsersIds.contains(u1.getId()));
+		assertTrue(managedUsersIds.contains(u2.getId()));
+		assertTrue(managedUsersIds.contains(u3.getId()));
+		assertTrue(managedUsersIds.contains(u4.getId()));
+		assertTrue(managedUsersIds.contains(u5.getId()));
+	}
+	
+	@Test
+	public void testFindManagedUsersOfNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed users: User ID cannot be null.");
+		
+		userDao.findManagedUsers(null);
+	}
+	
+	@Test
+	public void testFindManagedUsersOfUserWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed users: User ID cannot be null.");
+		
+		userDao.findManagedUsers(createTestUser());
+	}
+	
+	@Test
+	public void testFindManagedUsersByRole() {
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r4);
+		roleDao.addManagedRole(r5, r3);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		userDao.addRole(u2, r2);
+		userDao.addRole(u3, r3);
+		userDao.addRole(u4, r4);
+		userDao.addRole(u5, r5);
+		
+		Set<String> managedUsersIds = userDao.findManagedUsersByRole(u1, r1).stream().map( u -> u.getId() ).collect(Collectors.toSet());
+		assertEquals(4, managedUsersIds.size());
+		assertTrue(managedUsersIds.contains(u1.getId()));
+		assertTrue(managedUsersIds.contains(u2.getId()));
+		assertTrue(managedUsersIds.contains(u4.getId()));
+		assertTrue(managedUsersIds.contains(u5.getId()));
+		
+		managedUsersIds = userDao.findManagedUsersByRole(u1, r5).stream().map( u -> u.getId() ).collect(Collectors.toSet());
+		assertEquals(1, managedUsersIds.size());
+		assertTrue(managedUsersIds.contains(u3.getId()));
+		
+		managedUsersIds = userDao.findManagedUsersByRole(u1, r3).stream().map( u -> u.getId() ).collect(Collectors.toSet());
+		assertEquals(0, managedUsersIds.size());
+	}
+	
+	@Test
+	public void testFindManagedUsersByRoleOfNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed users by role: IDs of user and role cannot be null.");
+		
+		userDao.findManagedUsersByRole(null, r1);
+	}
+	
+	@Test
+	public void testFindManagedUsersByRoleOfUserWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed users by role: IDs of user and role cannot be null.");
+		
+		userDao.findManagedUsersByRole(createTestUser(), r1);
+	}
+	
+	@Test
+	public void testFindManagedUsersByNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed users by role: IDs of user and role cannot be null.");
+		
+		userDao.findManagedUsersByRole(u1, null);
+	}
+	
+	@Test
+	public void testFindManagedUsersByRoleWithNullId() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed users by role: IDs of user and role cannot be null.");
+		
+		userDao.findManagedUsersByRole(u1, new Role("role") );
+	}
+	
+	@Test
+	public void testFindManagedUserByNotAssignedRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to find managed users by role: User: " + u1.getId() + " not has Role: " + r4.getId());
+		
+		roleDao.addSubRole(r1, r2);
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r4, r5);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r4);
+		roleDao.addManagedRole(r5, r3);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		userDao.addRole(u2, r2);
+		userDao.addRole(u3, r3);
+		userDao.addRole(u4, r4);
+		userDao.addRole(u5, r5);
+		
+		userDao.findManagedUsersByRole(u1, r4);
 	}
 
 	private void verifyUser(User user) {

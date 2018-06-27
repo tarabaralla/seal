@@ -203,12 +203,18 @@ public class UserDao  extends BaseDao {
 	}
 	
 	public Set<Role> findAllRoles(User user) {
+		if( user == null || user.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find user roles: user must be persisted.");
+		}
 		Set<Role> roles = findDirectRoles(user);
 		roles.addAll(findIndirectRoles(user));
 		return roles;
 	}
 
 	public Set<Role> findDirectRoles(User user) {
+		if( user == null || user.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find user direct-roles: user must be persisted.");
+		}
 		Set<UserRoleRelation> userRoleRelations = userRoleRelationDao.findUserRoleRelations(user.getId(), null);
 		Set<Role> directRoles = new HashSet<>();
 		for( UserRoleRelation userRoleRelation : userRoleRelations ) {
@@ -218,6 +224,9 @@ public class UserDao  extends BaseDao {
 	}
 	
 	public Set<Role> findIndirectRoles(User user) {
+		if( user == null || user.getId() == null ) {
+			throw new IllegalArgumentException("Unable to find user indirect-roles: user must be persisted.");
+		}
 		Set<Role> indirectRoles = new HashSet<>();
 		Iterator<Role> iterator = findDirectRoles(user).iterator();
 		while ( iterator.hasNext() ) {
@@ -270,7 +279,12 @@ public class UserDao  extends BaseDao {
 		}
 		
 		Set<User> managedUsers = new HashSet<>();
-		for( Role role : findManagedRoles(user) ) {
+		Set<Role> managedRoles = findManagedRoles(user);
+		Iterator<Role> mrIterator = findManagedRoles(user).iterator();
+		while( mrIterator.hasNext() ) {
+			managedRoles.addAll(roleDao.findAllSubRoles(mrIterator.next()));
+		}
+		for( Role role : managedRoles ) {
 			for( UserRoleRelation urr : userRoleRelationDao.findUserRoleRelations(null, role.getId()) ) {
 				managedUsers.add( findUserById(urr.getUserId()) );
 			}
@@ -289,7 +303,12 @@ public class UserDao  extends BaseDao {
 		}
 		
 		Set<User> managedUsers = new HashSet<>();
-		for( Role managedRole : roleDao.findAllManagedRoles(role) ) {
+		Set<Role> managedRoles = roleDao.findAllManagedRoles(role);
+		Iterator<Role> mrIterator = roleDao.findAllManagedRoles(role).iterator();
+		while( mrIterator.hasNext() ) {
+			managedRoles.addAll(roleDao.findAllSubRoles(mrIterator.next()));
+		}
+		for( Role managedRole : managedRoles ) {
 			for( UserRoleRelation urr : userRoleRelationDao.findUserRoleRelations(null, managedRole.getId()) ) {
 				managedUsers.add( findUserById(urr.getUserId()) );
 			}
