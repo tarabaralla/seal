@@ -2,4 +2,4 @@
 .settings/
 /target/
 .DS_Store
-log4j-application.log.*
+*log4j-application.log.*
