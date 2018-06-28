@@ -31,7 +31,9 @@ public class RoleDao extends BaseDao{
 
 			checkRoleCreation(role);
 			
+			getEntityManager().getTransaction().begin();
 			getEntityManager().persist(role);
+			getEntityManager().getTransaction().commit();
 			
 			return true;
 			

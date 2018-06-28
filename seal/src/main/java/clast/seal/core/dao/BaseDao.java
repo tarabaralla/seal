@@ -6,8 +6,10 @@ import clast.seal.core.persistence.EntityManagerProducer;
 
 public abstract class BaseDao {
 	
+	private EntityManagerProducer emp = new EntityManagerProducer();
+	
 	EntityManager getEntityManager() {
-		return EntityManagerProducer.getEntityManager();
+		return emp.getEntityManager();
 	}
 
 }

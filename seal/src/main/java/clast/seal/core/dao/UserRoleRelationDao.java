@@ -35,9 +35,11 @@ public class UserRoleRelationDao extends BaseDao {
 					getEntityManager().remove(urr);
 				}
 			}
-			getEntityManager().getTransaction().commit();
 			
 			getEntityManager().persist(userRoleRelation);
+
+			getEntityManager().getTransaction().commit();
+			
 			
 			return true;
 			

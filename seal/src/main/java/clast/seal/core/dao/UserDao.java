@@ -29,7 +29,10 @@ public class UserDao  extends BaseDao {
 			
 			checkNewUser(user);
 			
+			getEntityManager().getTransaction().begin();
 			getEntityManager().persist(user);
+			getEntityManager().getTransaction().commit();
+			
 			
 			return true;
 			
@@ -128,6 +131,7 @@ public class UserDao  extends BaseDao {
 			throw new IllegalArgumentException("User not persisted.");
 		}
 		
+		getEntityManager().clear();
 		User u = getEntityManager().find(User.class, user.getId());			
 		
 		if( u == null ) {

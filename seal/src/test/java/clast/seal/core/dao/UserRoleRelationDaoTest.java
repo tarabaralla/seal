@@ -341,7 +341,6 @@ public class UserRoleRelationDaoTest {
 		userRoleRelationDao.createUserRoleRelation(createTestUserRoleRelation(u4.getId(), r7.getId()));
 		
 		Set<String> roleIds = userRoleRelationDao.findUserRoleRelations(null, null).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
-		assertEquals(9, roleIds.size());
 		assertTrue(roleIds.contains(stringOf(u1.getId(), r3.getId())));
 		assertTrue(roleIds.contains(stringOf(u1.getId(), r4.getId())));
 		assertTrue(roleIds.contains(stringOf(u2.getId(), r4.getId())));
@@ -351,6 +350,7 @@ public class UserRoleRelationDaoTest {
 		assertTrue(roleIds.contains(stringOf(u4.getId(), r1.getId())));
 		assertTrue(roleIds.contains(stringOf(u4.getId(), r5.getId())));
 		assertTrue(roleIds.contains(stringOf(u4.getId(), r7.getId())));
+		assertEquals(9, roleIds.size());
 		
 		roleIds = userRoleRelationDao.findUserRoleRelations(null, r7.getId()).stream().map( urr -> urr.toString() ).collect(Collectors.toSet());
 		assertEquals(3, roleIds.size());

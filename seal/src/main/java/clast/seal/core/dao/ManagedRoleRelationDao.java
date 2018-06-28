@@ -22,7 +22,9 @@ public class ManagedRoleRelationDao extends BaseDao {
 
 			checkNewManagedRoleRelation(managedRoleRelation);
 			
+			getEntityManager().getTransaction().begin();
 			getEntityManager().persist(managedRoleRelation);
+			getEntityManager().getTransaction().commit();
 			
 			return true;
 			

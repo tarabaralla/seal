@@ -57,11 +57,12 @@ public class SubRoleRelationDao extends BaseDao {
 					indirectSubRoleRelations.add(currentIndSubRoleRelation);
 				}
 			}
-			
+			getEntityManager().getTransaction().begin();
 			getEntityManager().persist(subRoleRelation);
 			for( IndirectSubRoleRelation indirectSubRoleRelation : indirectSubRoleRelations ) {
 				getEntityManager().persist(indirectSubRoleRelation);
 			}
+			getEntityManager().getTransaction().commit();
 			
 			return true;
 			

@@ -1,20 +1,16 @@
 package clast.seal.core.persistence;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 public class EntityManagerProducer {
 	
-	private static EntityManager em;
+	private static EntityManager em = Persistence.createEntityManagerFactory("mysqlJPAtest").createEntityManager();
 	
-	static {
-		//TODO esternalizzare persistence unit name
-		EntityManagerFactory emf = Persistence.createEntityManagerFactory("mongo_pu");
-		em = emf.createEntityManager();
+	public EntityManagerProducer() {
 	}
 
-	public static EntityManager getEntityManager() {
+	public EntityManager getEntityManager() {
 		return em;
 	}
 
