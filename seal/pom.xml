@@ -63,6 +63,15 @@
 			<version>3.13</version>
 		</dependency>
 
+
+		<!-- Cassandra + Kundera -->
+
+		<dependency>
+			<groupId>com.impetus.kundera.client</groupId>
+			<artifactId>kundera-cassandra</artifactId>
+			<version>3.9</version>
+		</dependency>
+
 		<!-- JPA/Hibernate -->
 
 		<dependency>
@@ -96,8 +105,6 @@
 			<version>2.4.1</version>
 			<scope>test</scope>
 		</dependency>
-
-
 
 	</dependencies>
 
