@@ -8,7 +8,7 @@ public class BaseDaoTest {
 
 	@BeforeClass
 	public static void setUpPersistence() {
-		PersistenceManager.setUpTestConnection("mongo_pu_test");
+		PersistenceManager.setUpTestConnection("hsql_pu_test");
 	}
 
 }

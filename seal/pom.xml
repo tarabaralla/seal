@@ -24,8 +24,6 @@
 			<version>1.2.17</version>
 		</dependency>
 
-
-
 		<!-- Testing -->
 
 		<dependency>
@@ -79,6 +77,13 @@
 			<artifactId>persistence-api</artifactId>
 			<version>1.0.2</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.jboss</groupId>
+			<artifactId>jandex</artifactId>
+			<version>1.2.2.Final</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
