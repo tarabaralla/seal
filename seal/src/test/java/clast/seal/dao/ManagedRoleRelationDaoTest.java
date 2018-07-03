@@ -12,10 +12,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import clast.seal.BaseTest;
 import clast.seal.model.ManagedRoleRelation;
 import clast.seal.model.Role;
 
-public class ManagedRoleRelationDaoTest extends BaseDaoTest {
+public class ManagedRoleRelationDaoTest extends BaseTest {
 
 	private ManagedRoleRelationDao managedRoleRelationDao;
 	private RoleDao roleDao;

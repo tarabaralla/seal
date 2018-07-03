@@ -240,6 +240,11 @@ public class UserDao  extends BaseDao {
 	}
 	
 	public boolean hasRole(User user, Role role) {
+		
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to verify role assignment: role ID cannot be null.");
+		}
+		
 		return findAllRoles(user)
 				.stream()
 					.map( r -> r.getId() )
@@ -248,6 +253,11 @@ public class UserDao  extends BaseDao {
 	}
 	
 	public boolean directlyHasRole(User user, Role role) {
+
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to verify role assignment: role ID cannot be null.");
+		}
+		
 		return findDirectRoles(user)
 				.stream()
 					.map( r -> r.getId() )
@@ -256,6 +266,11 @@ public class UserDao  extends BaseDao {
 	}
 	
 	public boolean indirectlyHasRole(User user, Role role) {
+
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to verify role assignment: role ID cannot be null.");
+		}
+		
 		return findIndirectRoles(user)
 				.stream()
 				.map( r -> r.getId() )
@@ -263,7 +278,7 @@ public class UserDao  extends BaseDao {
 				.contains(role.getId());
 	}
 	
-	public Set<Role> findManagedRoles(User user) {
+	public Set<Role> findAllManagedRoles(User user) {
 		
 		if( user == null || user.getId() == null ) {
 			throw new IllegalArgumentException("Unable to find managed roles: User ID cannot be null.");
@@ -283,8 +298,8 @@ public class UserDao  extends BaseDao {
 		}
 		
 		Set<User> managedUsers = new HashSet<>();
-		Set<Role> managedRoles = findManagedRoles(user);
-		Iterator<Role> mrIterator = findManagedRoles(user).iterator();
+		Set<Role> managedRoles = findAllManagedRoles(user);
+		Iterator<Role> mrIterator = findAllManagedRoles(user).iterator();
 		while( mrIterator.hasNext() ) {
 			managedRoles.addAll(roleDao.findAllSubRoles(mrIterator.next()));
 		}
@@ -320,9 +335,23 @@ public class UserDao  extends BaseDao {
 		return managedUsers;
 	}
 
+	public boolean managesRole(User user, Role role) {
+		
+		if( role == null || role.getId() == null ) {
+			throw new IllegalArgumentException("Unable to verify role management: role ID cannot be null.");
+		}
+		
+		return findAllManagedRoles(user)
+				.stream()
+					.map( r -> r.getId() )
+					.collect(Collectors.toSet())
+				.contains(role.getId());
+	}
+
 	private boolean userHasRole(User user, Role role) {
 		Set<String> roleIds = findAllRoles(user).stream().map( r -> r.getId() ).collect(Collectors.toSet());
 		return roleIds.contains(role.getId());
 	}
+
 	
 }

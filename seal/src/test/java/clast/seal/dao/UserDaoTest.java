@@ -15,10 +15,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import clast.seal.BaseTest;
 import clast.seal.model.Role;
 import clast.seal.model.User;
 
-public class UserDaoTest extends BaseDaoTest {
+public class UserDaoTest extends BaseTest {
 
 	private UserDao userDao;
 	private RoleDao roleDao;
@@ -35,6 +36,7 @@ public class UserDaoTest extends BaseDaoTest {
 	private Role r3;
 	private Role r4;
 	private Role r5;
+	private Role r6;
 	
 	@Rule
 	public ExpectedException expectedEx = ExpectedException.none();
@@ -62,11 +64,13 @@ public class UserDaoTest extends BaseDaoTest {
 		r3 = new Role("role3");
 		r4 = new Role("role4");
 		r5 = new Role("role5");
+		r6 = new Role("role6");
 		roleDao.createRole(r1);
 		roleDao.createRole(r2);
 		roleDao.createRole(r3);
 		roleDao.createRole(r4);
 		roleDao.createRole(r5);
+		roleDao.createRole(r6);
 	}
 	
 	@After
@@ -538,6 +542,22 @@ public class UserDaoTest extends BaseDaoTest {
 	}
 	
 	@Test
+	public void testHasNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role assignment: role ID cannot be null.");
+		
+		userDao.hasRole(u1, null);
+	}
+	
+	@Test
+	public void testHasRoleNotPersisted() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role assignment: role ID cannot be null.");
+		
+		userDao.hasRole(u1, new Role("r1234"));
+	}
+	
+	@Test
 	public void testDirectlyHasRole() {
 		
 		roleDao.addSubRole(r1, r2);
@@ -551,6 +571,22 @@ public class UserDaoTest extends BaseDaoTest {
 		assertFalse(userDao.directlyHasRole(u1, r3));
 		assertTrue(userDao.directlyHasRole(u1, r5));
 		assertFalse(userDao.directlyHasRole(u1, r4));
+	}
+	
+	@Test
+	public void testDirectlyHasNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role assignment: role ID cannot be null.");
+		
+		userDao.directlyHasRole(u1, null);
+	}
+	
+	@Test
+	public void testDirectlyHasRoleNotPersisted() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role assignment: role ID cannot be null.");
+		
+		userDao.directlyHasRole(u1, new Role("r1234"));
 	}
 	
 	@Test
@@ -570,11 +606,28 @@ public class UserDaoTest extends BaseDaoTest {
 	}
 	
 	@Test
+	public void testIndirectlyHasNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role assignment: role ID cannot be null.");
+		
+		userDao.indirectlyHasRole(u1, null);
+	}
+	
+	@Test
+	public void testIndirectlyHasRoleNotPersisted() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role assignment: role ID cannot be null.");
+		
+		userDao.indirectlyHasRole(u1, new Role("r1234"));
+	}
+	
+	@Test
 	public void testFindManagedRoles() {
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
 		roleDao.addSubRole(r4, r5);
 		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r2, r6);
 		roleDao.addManagedRole(r1, r4);
 		roleDao.addManagedRole(r5, r3);
 		userDao.addRole(u1, r1);
@@ -584,11 +637,12 @@ public class UserDaoTest extends BaseDaoTest {
 		userDao.addRole(u4, r4);
 		userDao.addRole(u5, r5);
 		
-		Set<String> managedRoleNames = userDao.findManagedRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
-		assertEquals(3, managedRoleNames.size());
+		Set<String> managedRoleNames = userDao.findAllManagedRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(4, managedRoleNames.size());
 		assertTrue(managedRoleNames.contains(r2.getName()));
 		assertTrue(managedRoleNames.contains(r3.getName()));
 		assertTrue(managedRoleNames.contains(r4.getName()));
+		assertTrue(managedRoleNames.contains(r6.getName()));
 	}
 	
 	@Test
@@ -596,7 +650,7 @@ public class UserDaoTest extends BaseDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to find managed roles: User ID cannot be null.");
 		
-		userDao.findManagedRoles(null);
+		userDao.findAllManagedRoles(null);
 	}
 	
 	@Test
@@ -604,7 +658,7 @@ public class UserDaoTest extends BaseDaoTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to find managed roles: User ID cannot be null.");
 		
-		userDao.findManagedRoles(createTestUser());
+		userDao.findAllManagedRoles(createTestUser());
 	}
 	
 	@Test
@@ -728,6 +782,41 @@ public class UserDaoTest extends BaseDaoTest {
 		userDao.addRole(u5, r5);
 		
 		userDao.findManagedUsersByRole(u1, r4);
+	}
+	
+	@Test
+	public void testManagesRole() {
+		
+		roleDao.addSubRole(r4, r5);
+		roleDao.addManagedRole(r1, r1);
+		roleDao.addManagedRole(r1, r2);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r3, r5);
+		roleDao.addManagedRole(r4, r5);
+		userDao.addRole(u1, r1);
+		userDao.addRole(u1, r5);
+		
+		assertTrue(userDao.managesRole(u1, r1));
+		assertTrue(userDao.managesRole(u1, r2));
+		assertTrue(userDao.managesRole(u1, r3));
+		assertFalse(userDao.managesRole(u1, r4));
+		assertTrue(userDao.managesRole(u1, r5));
+	}
+	
+	@Test
+	public void testManagesNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role management: role ID cannot be null.");
+		
+		userDao.managesRole(u1, null);
+	}
+	
+	@Test
+	public void testManagesRoleNotPersisted() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to verify role management: role ID cannot be null.");
+		
+		userDao.managesRole(u1, new Role("r1234"));
 	}
 
 	private void verifyUser(User user) {

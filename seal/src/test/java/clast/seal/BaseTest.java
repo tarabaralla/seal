@@ -1,10 +1,10 @@
-package clast.seal.dao;
+package clast.seal;
 
 import org.junit.BeforeClass;
 
 import clast.seal.persistence.PersistenceManager;
 
-public class BaseDaoTest {
+public class BaseTest {
 
 	@BeforeClass
 	public static void setUpPersistence() {
