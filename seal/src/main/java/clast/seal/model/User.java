@@ -22,7 +22,7 @@ public class User {
 	private String username;
 
 	@NotNull
-	private String password;
+	private Password password;
 
 	private String name;
 
@@ -33,11 +33,13 @@ public class User {
 
 	private String phone;
 
-	public User() {}
+	public User() {
+		password = new Password();
+	}
 	
 	public User(String username, String password) {
 		this.username = username;
-		this.password = password;
+		this.password = new Password(password);
 	}
 	
 	public String getId() {
@@ -53,11 +55,19 @@ public class User {
 	}
 
 	public String getPassword() {
-		return password;
+		return password.getValue();
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setPassword(String encryptedPassword) {
+		this.password.setValue(encryptedPassword);
+	}
+	
+	public void encryptPassword(String plainPassword) {
+		this.password.encryptPassword(plainPassword);
+	}
+	
+	public boolean checkPassword(String plainPassword) {
+		return password.checkPassword(plainPassword);
 	}
 
 	public String getName() {

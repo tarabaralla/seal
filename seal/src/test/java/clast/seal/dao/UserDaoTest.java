@@ -116,7 +116,7 @@ public class UserDaoTest extends BaseTest {
 		expectedEx.expectMessage("Unable to create user: Username cannot be null.");
 		
 		User user = new User();
-		user.setPassword("password");
+		user.encryptPassword("password");
 		userDao.createUser(user);
 	}
 	
@@ -238,7 +238,7 @@ public class UserDaoTest extends BaseTest {
 	@Test
 	public void testUpdateUser() {
 		u1.setUsername("u1");
-		u1.setPassword("p1");
+		u1.encryptPassword("p1");
 		u1.setName("n1");
 		u1.setLastname("l1");
 		u1.setEmail("e1");
@@ -902,7 +902,7 @@ public class UserDaoTest extends BaseTest {
 	private User createTestUser() {
 		User user = new User();
 		user.setUsername("username1");
-		user.setPassword("password1");
+		user.encryptPassword("password1");
 		user.setName("name1");
 		user.setLastname("lastname1");
 		user.setEmail("email1");

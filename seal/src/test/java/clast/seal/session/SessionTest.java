@@ -235,14 +235,14 @@ public class SessionTest extends BaseTest {
 	public void testUpdateProfile() {
 		session.login("usr1", "pwd1");
 		u1.setUsername("mario.rossi");
-		u1.setPassword("123");
+		u1.encryptPassword("123");
 		u1.setName("mario");
 		u1.setLastname("rossi");
 		u1.setEmail("mario.rossi@gmail.com");
 		u1.setPhone("1234567");
 		assertTrue(session.updateProfile(u1));
 		assertEquals("mario.rossi", session.getLoggedUser().getUsername());
-		assertEquals("123", session.getLoggedUser().getPassword());
+		assertTrue(session.getLoggedUser().checkPassword("123"));
 		assertEquals("mario", session.getLoggedUser().getName());
 		assertEquals("rossi", session.getLoggedUser().getLastname());
 		assertEquals("mario.rossi@gmail.com", session.getLoggedUser().getEmail());
@@ -255,7 +255,7 @@ public class SessionTest extends BaseTest {
 		expectedEx.expectMessage("Unable to update profile: no users logged in.");
 		
 		u1.setUsername("mario.rossi");
-		u1.setPassword("123");
+		u1.encryptPassword("123");
 		u1.setName("mario");
 		u1.setLastname("rossi");
 		u1.setEmail("mario.rossi@gmail.com");
@@ -270,7 +270,7 @@ public class SessionTest extends BaseTest {
 		
 		session.login("usr2", "pwd2");
 		u1.setUsername("mario.rossi");
-		u1.setPassword("123");
+		u1.encryptPassword("123");
 		u1.setName("mario");
 		u1.setLastname("rossi");
 		u1.setEmail("mario.rossi@gmail.com");

@@ -52,7 +52,7 @@ public class Session implements Serializable {
 				throw new IllegalArgumentException("user not found.");
 			}
 
-			if (!password.equals(user.getPassword())) {
+			if (!user.checkPassword(password)) {
 				throw new IllegalArgumentException("wrong password.");
 			}
 
