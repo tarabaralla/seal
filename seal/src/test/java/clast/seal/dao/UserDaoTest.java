@@ -425,9 +425,57 @@ public class UserDaoTest extends BaseTest {
 	}
 	
 	@Test
+	public void testAddRoleToNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to add role: user and role cannot be null.");
+		
+		userDao.addRole(null, r1);
+	}
+	
+	@Test
+	public void testAddNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to add role: user and role cannot be null.");
+		
+		userDao.addRole(u1, null);
+	}
+	
+	@Test
+	public void testAddNullRoleToNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to add role: user and role cannot be null.");
+		
+		userDao.addRole(null, null);
+	}
+	
+	@Test
 	public void testRemoveRole() {
 		userDao.addRole(u1, r1);
 		assertTrue(userDao.removeRole(u1, r1));
+	}
+	
+	@Test
+	public void testRemoveRoleToNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to remove role: user and role cannot be null.");
+		
+		userDao.removeRole(null, r1);
+	}
+	
+	@Test
+	public void testRemoveNullRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to remove role: user and role cannot be null.");
+		
+		userDao.removeRole(u1, null);
+	}
+	
+	@Test
+	public void testRemoveNullRoleToNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to remove role: user and role cannot be null.");
+		
+		userDao.removeRole(null, null);
 	}
 	
 	@Test
@@ -625,21 +673,23 @@ public class UserDaoTest extends BaseTest {
 	public void testFindManagedRoles() {
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
 		roleDao.addSubRole(r4, r5);
-		roleDao.addManagedRole(r1, r2);
-		roleDao.addManagedRole(r2, r6);
-		roleDao.addManagedRole(r1, r4);
-		roleDao.addManagedRole(r5, r3);
+		roleDao.addManagedRole(r1, r1);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r3);
+		roleDao.addManagedRole(r6, r4);
+		roleDao.addManagedRole(r5, r6);
 		userDao.addRole(u1, r1);
-		userDao.addRole(u1, r5);
+		userDao.addRole(u1, r6);
 		userDao.addRole(u2, r2);
 		userDao.addRole(u3, r3);
 		userDao.addRole(u4, r4);
 		userDao.addRole(u5, r5);
 		
-		Set<String> managedRoleNames = userDao.findAllManagedRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		Set<String> managedRoleNames = userDao.findManagedRoles(u1).stream().map( r -> r.getName() ).collect(Collectors.toSet());
 		assertEquals(4, managedRoleNames.size());
-		assertTrue(managedRoleNames.contains(r2.getName()));
+		assertTrue(managedRoleNames.contains(r1.getName()));
 		assertTrue(managedRoleNames.contains(r3.getName()));
 		assertTrue(managedRoleNames.contains(r4.getName()));
 		assertTrue(managedRoleNames.contains(r6.getName()));
@@ -650,7 +700,7 @@ public class UserDaoTest extends BaseTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to find managed roles: User ID cannot be null.");
 		
-		userDao.findAllManagedRoles(null);
+		userDao.findManagedRoles(null);
 	}
 	
 	@Test
@@ -658,19 +708,22 @@ public class UserDaoTest extends BaseTest {
 		expectedEx.expect(IllegalArgumentException.class);
 		expectedEx.expectMessage("Unable to find managed roles: User ID cannot be null.");
 		
-		userDao.findAllManagedRoles(createTestUser());
+		userDao.findManagedRoles(createTestUser());
 	}
 	
 	@Test
 	public void testFindManagedUsers() {
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
 		roleDao.addSubRole(r4, r5);
-		roleDao.addManagedRole(r1, r2);
-		roleDao.addManagedRole(r1, r4);
-		roleDao.addManagedRole(r5, r3);
+		roleDao.addManagedRole(r1, r1);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r3);
+		roleDao.addManagedRole(r6, r4);
+		roleDao.addManagedRole(r5, r6);
 		userDao.addRole(u1, r1);
-		userDao.addRole(u1, r5);
+		userDao.addRole(u1, r6);
 		userDao.addRole(u2, r2);
 		userDao.addRole(u3, r3);
 		userDao.addRole(u4, r4);
@@ -705,27 +758,36 @@ public class UserDaoTest extends BaseTest {
 	public void testFindManagedUsersByRole() {
 		roleDao.addSubRole(r1, r2);
 		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
 		roleDao.addSubRole(r4, r5);
-		roleDao.addManagedRole(r1, r2);
-		roleDao.addManagedRole(r1, r4);
-		roleDao.addManagedRole(r5, r3);
+		roleDao.addManagedRole(r1, r1);
+		roleDao.addManagedRole(r1, r3);
+		roleDao.addManagedRole(r2, r3);
+		roleDao.addManagedRole(r6, r4);
+		roleDao.addManagedRole(r5, r6);
 		userDao.addRole(u1, r1);
-		userDao.addRole(u1, r5);
+		userDao.addRole(u1, r6);
 		userDao.addRole(u2, r2);
 		userDao.addRole(u3, r3);
 		userDao.addRole(u4, r4);
 		userDao.addRole(u5, r5);
 		
 		Set<String> managedUsersIds = userDao.findManagedUsersByRole(u1, r1).stream().map( u -> u.getId() ).collect(Collectors.toSet());
-		assertEquals(4, managedUsersIds.size());
+		assertEquals(5, managedUsersIds.size());
 		assertTrue(managedUsersIds.contains(u1.getId()));
 		assertTrue(managedUsersIds.contains(u2.getId()));
+		assertTrue(managedUsersIds.contains(u3.getId()));
 		assertTrue(managedUsersIds.contains(u4.getId()));
 		assertTrue(managedUsersIds.contains(u5.getId()));
 		
 		managedUsersIds = userDao.findManagedUsersByRole(u1, r5).stream().map( u -> u.getId() ).collect(Collectors.toSet());
 		assertEquals(1, managedUsersIds.size());
-		assertTrue(managedUsersIds.contains(u3.getId()));
+		assertTrue(managedUsersIds.contains(u1.getId()));
+		
+		managedUsersIds = userDao.findManagedUsersByRole(u1, r6).stream().map( u -> u.getId() ).collect(Collectors.toSet());
+		assertEquals(2, managedUsersIds.size());
+		assertTrue(managedUsersIds.contains(u4.getId()));
+		assertTrue(managedUsersIds.contains(u5.getId()));
 		
 		managedUsersIds = userDao.findManagedUsersByRole(u1, r3).stream().map( u -> u.getId() ).collect(Collectors.toSet());
 		assertEquals(0, managedUsersIds.size());
@@ -787,20 +849,27 @@ public class UserDaoTest extends BaseTest {
 	@Test
 	public void testManagesRole() {
 		
+		roleDao.addSubRole(r1, r3);
+		roleDao.addSubRole(r2, r4);
 		roleDao.addSubRole(r4, r5);
 		roleDao.addManagedRole(r1, r1);
-		roleDao.addManagedRole(r1, r2);
 		roleDao.addManagedRole(r1, r3);
-		roleDao.addManagedRole(r3, r5);
-		roleDao.addManagedRole(r4, r5);
+		roleDao.addManagedRole(r2, r3);
+		roleDao.addManagedRole(r6, r4);
+		roleDao.addManagedRole(r5, r6);
 		userDao.addRole(u1, r1);
-		userDao.addRole(u1, r5);
+		userDao.addRole(u1, r6);
+		userDao.addRole(u2, r2);
+		userDao.addRole(u3, r3);
+		userDao.addRole(u4, r4);
+		userDao.addRole(u5, r5);
 		
 		assertTrue(userDao.managesRole(u1, r1));
-		assertTrue(userDao.managesRole(u1, r2));
+		assertFalse(userDao.managesRole(u1, r2));
 		assertTrue(userDao.managesRole(u1, r3));
-		assertFalse(userDao.managesRole(u1, r4));
-		assertTrue(userDao.managesRole(u1, r5));
+		assertTrue(userDao.managesRole(u1, r4));
+		assertFalse(userDao.managesRole(u1, r5));
+		assertFalse(userDao.managesRole(u1, r6));
 	}
 	
 	@Test

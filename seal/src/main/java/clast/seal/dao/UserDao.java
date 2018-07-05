@@ -199,10 +199,18 @@ public class UserDao  extends BaseDao {
 	}
 	
 	public boolean addRole(User user, Role role) {
+		
+		if(user == null || role == null ) {
+			throw new IllegalArgumentException("Unable to add role: user and role cannot be null.");
+		}
 		return userRoleRelationDao.createUserRoleRelation( new UserRoleRelation(user.getId(), role.getId()) );
 	}
 	
 	public boolean removeRole(User user, Role role) {
+		
+		if(user == null || role == null ) {
+			throw new IllegalArgumentException("Unable to remove role: user and role cannot be null.");
+		}
 		return userRoleRelationDao.deleteUserRoleRelation( new UserRoleRelation(user.getId(), role.getId()) );
 	}
 	
@@ -278,7 +286,7 @@ public class UserDao  extends BaseDao {
 				.contains(role.getId());
 	}
 	
-	public Set<Role> findAllManagedRoles(User user) {
+	public Set<Role> findManagedRoles(User user) {
 		
 		if( user == null || user.getId() == null ) {
 			throw new IllegalArgumentException("Unable to find managed roles: User ID cannot be null.");
@@ -298,8 +306,8 @@ public class UserDao  extends BaseDao {
 		}
 		
 		Set<User> managedUsers = new HashSet<>();
-		Set<Role> managedRoles = findAllManagedRoles(user);
-		Iterator<Role> mrIterator = findAllManagedRoles(user).iterator();
+		Set<Role> managedRoles = findManagedRoles(user);
+		Iterator<Role> mrIterator = findManagedRoles(user).iterator();
 		while( mrIterator.hasNext() ) {
 			managedRoles.addAll(roleDao.findAllSubRoles(mrIterator.next()));
 		}
@@ -341,7 +349,7 @@ public class UserDao  extends BaseDao {
 			throw new IllegalArgumentException("Unable to verify role management: role ID cannot be null.");
 		}
 		
-		return findAllManagedRoles(user)
+		return findManagedRoles(user)
 				.stream()
 					.map( r -> r.getId() )
 					.collect(Collectors.toSet())

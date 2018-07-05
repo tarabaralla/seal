@@ -280,9 +280,9 @@ public class RoleDao extends BaseDao{
 			throw new IllegalArgumentException("Unable to find indirect managed roles: role ID cannot be null.");
 		}
 		Set<Role> managedRoles = new HashSet<>();
-		Iterator<Role> iterator = findDirectManagedRoles(role).iterator();
+		Iterator<Role> iterator = findAllSubRoles(role).iterator();
 		while( iterator.hasNext() ) {
-			managedRoles.addAll( findDirectManagedRoles(iterator.next()) );
+			managedRoles.addAll( findAllManagedRoles(iterator.next()) );
 		}
 		return managedRoles;
 	}

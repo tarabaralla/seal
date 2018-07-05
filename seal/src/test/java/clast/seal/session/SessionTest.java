@@ -1,12 +1,14 @@
 package clast.seal.session;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -230,6 +232,186 @@ public class SessionTest extends BaseTest {
 	}
 	
 	@Test
+	public void testUpdateProfile() {
+		session.login("usr1", "pwd1");
+		u1.setUsername("mario.rossi");
+		u1.setPassword("123");
+		u1.setName("mario");
+		u1.setLastname("rossi");
+		u1.setEmail("mario.rossi@gmail.com");
+		u1.setPhone("1234567");
+		assertTrue(session.updateProfile(u1));
+		assertEquals("mario.rossi", session.getLoggedUser().getUsername());
+		assertEquals("123", session.getLoggedUser().getPassword());
+		assertEquals("mario", session.getLoggedUser().getName());
+		assertEquals("rossi", session.getLoggedUser().getLastname());
+		assertEquals("mario.rossi@gmail.com", session.getLoggedUser().getEmail());
+		assertEquals("1234567", session.getLoggedUser().getPhone());
+	}
+	
+	@Test
+	public void testUpdateProfileFromSessionWithoutLoggedUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to update profile: no users logged in.");
+		
+		u1.setUsername("mario.rossi");
+		u1.setPassword("123");
+		u1.setName("mario");
+		u1.setLastname("rossi");
+		u1.setEmail("mario.rossi@gmail.com");
+		u1.setPhone("1234567");
+		session.updateProfile(u1);
+	}
+	
+	@Test
+	public void testUpdateProfileOfNotLoggedUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to update profile: only logged in user data can be changed.");
+		
+		session.login("usr2", "pwd2");
+		u1.setUsername("mario.rossi");
+		u1.setPassword("123");
+		u1.setName("mario");
+		u1.setLastname("rossi");
+		u1.setEmail("mario.rossi@gmail.com");
+		u1.setPhone("1234567");
+		session.updateProfile(u1);
+	}
+	
+	@Test
+	public void testUpdateProfileOfNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to update profile: only logged in user data can be changed.");
+		
+		session.login("usr1", "pwd1");
+		session.updateProfile(null);
+	}
+
+	@Test
+	public void testDeleteProfile() {
+		session.login("usr1", "pwd1");
+		
+		assertTrue(session.deleteProfile());
+		assertNull(session.getLoggedUser());
+		assertNull(userDao.findUserByUsername("usr1"));
+	}
+	
+	@Test
+	public void testDeleteProfileFromSessionWithoutLoggedUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete profile: no users logged in.");
+		
+		session.deleteProfile();
+	}
+	
+	@Test
+	public void testGetAllRoles() {
+		session.login("usr1", "pwd1");
+		Set<String> roleNames = session.getAllRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(4, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testGetDirectRoles() {
+		session.login("usr1", "pwd1");
+		Set<String> roleNames = session.getDirectRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(1, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+	}
+	
+	@Test
+	public void testGetIndirectRoles() {
+		session.login("usr1", "pwd1");
+		Set<String> roleNames = session.getIndirectRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(3, roleNames.size());
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testHasRole() {
+		session.login("usr1", "pwd1");
+		assertTrue(session.hasRole(r1));
+		assertTrue(session.hasRole(r2));
+		assertTrue(session.hasRole(r3));
+		assertTrue(session.hasRole(r4));
+		assertFalse(session.hasRole(r5));
+		assertFalse(session.hasRole(r6));
+		assertFalse(session.hasRole(r7));
+	}
+	
+	@Test
+	public void testDirectlyHasRole() {
+		session.login("usr1", "pwd1");
+		assertTrue(session.directlyHasRole(r1));
+		assertFalse(session.directlyHasRole(r2));
+		assertFalse(session.directlyHasRole(r3));
+		assertFalse(session.directlyHasRole(r4));
+		assertFalse(session.directlyHasRole(r5));
+		assertFalse(session.directlyHasRole(r6));
+		assertFalse(session.directlyHasRole(r7));
+	}
+	
+	@Test
+	public void testIndirectlyHasRole() {
+		session.login("usr1", "pwd1");
+		assertFalse(session.indirectlyHasRole(r1));
+		assertTrue(session.indirectlyHasRole(r2));
+		assertTrue(session.indirectlyHasRole(r3));
+		assertTrue(session.indirectlyHasRole(r4));
+		assertFalse(session.indirectlyHasRole(r5));
+		assertFalse(session.indirectlyHasRole(r6));
+		assertFalse(session.indirectlyHasRole(r7));
+	}
+	
+	@Test
+	public void testGetManagedRoles() {
+		session.login("usr1", "pwd1");
+		Set<String> roleNames = session.getManagedRoles().stream().map( r -> r.getName() ).collect(Collectors.toSet());
+		assertEquals(4, roleNames.size());
+		assertTrue(roleNames.contains(r1.getName()));
+		assertTrue(roleNames.contains(r2.getName()));
+		assertTrue(roleNames.contains(r3.getName()));
+		assertTrue(roleNames.contains(r4.getName()));
+	}
+	
+	@Test
+	public void testGetManagedUsers() {
+		session.login("usr1", "pwd1");
+		Set<String> usernames = session.getManagedUsers().stream().map( u -> u.getUsername() ).collect(Collectors.toSet());
+		assertEquals(4, usernames.size());
+		assertTrue(usernames.contains(u1.getUsername()));
+		assertTrue(usernames.contains(u2.getUsername()));
+		assertTrue(usernames.contains(u3.getUsername()));
+		assertTrue(usernames.contains(u4.getUsername()));
+	}
+	
+	@Test
+	public void testGetManagedUsersByRole() {
+		session.login("usr1", "pwd1");
+		Set<String> usernames = session.getManagedUsersByRole(r2).stream().map( u -> u.getUsername() ).collect(Collectors.toSet());
+		assertEquals(1, usernames.size());
+		assertTrue(usernames.contains(u4.getUsername()));
+	}
+	
+	@Test
+	public void testManagesRole() {
+		session.login("usr1", "pwd1");
+		assertTrue(session.managesRole(r1));
+		assertTrue(session.managesRole(r2));
+		assertTrue(session.managesRole(r3));
+		assertTrue(session.managesRole(r4));
+		assertFalse(session.managesRole(r5));
+		assertFalse(session.managesRole(r6));
+		assertFalse(session.managesRole(r7));
+	}
+	
+	@Test
 	public void testCreateUser() {
 		
 		session.login("usr1", "pwd1");
@@ -309,5 +491,107 @@ public class SessionTest extends BaseTest {
 		roles.add(r5);
 		session.createUser( new User("usr8", "pwd8"), roles);
 	}
-
+	
+	@Test
+	public void testDeleteUser() {
+		session.login("usr1", "pwd1");
+		assertTrue(session.deleteUser(u3.getUsername()));
+		assertTrue(session.deleteUser(u4.getUsername()));
+		assertTrue(session.deleteUser(u2.getUsername()));
+		Set<String> usersIds = userDao.findAllUsers()
+										.stream()
+											.map( u -> u.getId() )
+											.collect(Collectors.toSet());
+		assertEquals(4, usersIds.size());
+		assertTrue(usersIds.contains(u1.getId()));
+		assertTrue(usersIds.contains(u5.getId()));
+		assertTrue(usersIds.contains(u6.getId()));
+		assertTrue(usersIds.contains(u7.getId()));
+	}
+	
+	@Test
+	public void testDeleteUserFromSessionWithoutLoggedUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user: no users logged in.");
+		
+		session.deleteUser( u2.getUsername() );
+	}
+	
+	@Test
+	public void testDeleteNullUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user: user not found.");
+		
+		session.login("usr1", "pwd1");
+		session.deleteUser( "user123" );
+	}
+	
+	@Test
+	public void testDeleteLoggedUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user: logged in user cannot delete himself.");
+		
+		session.login("usr1", "pwd1");
+		session.deleteUser( u1.getUsername() );
+	}
+	
+	@Test
+	public void testDeleteUserWithNoManagedRoles() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to delete user: logged in user not manages one or more roles of user to delete.");
+		
+		userDao.addRole(u2, r7);
+		
+		session.login("usr1", "pwd1");
+		session.deleteUser( u2.getUsername() );
+	}
+	
+	@Test
+	public void testAddRole() {
+		session.login("usr1", "pwd1");
+		assertTrue(session.addRole(u2, r3));
+		assertTrue(session.addRole(u4, r3));
+	}
+	
+	@Test
+	public void testAddRoleFromSessionWithoutLoggedUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to add role to user: no users logged in.");
+		
+		session.addRole(u2, r3);
+	}
+	
+	@Test
+	public void testAddNotManagedRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to add role to user: logged in user not manages role to add/remove.");
+		
+		session.login("usr1", "pwd1");
+		session.addRole(u2, r7);
+	}
+	
+	@Test
+	public void testRemoveRole() {
+		session.login("usr1", "pwd1");
+		assertTrue(session.removeRole(u2, r2));
+		assertTrue(session.removeRole(u4, r4));
+	}
+	
+	@Test
+	public void testRemoveRoleFromSessionWithoutLoggedUser() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to remove role to user: no users logged in.");
+		
+		session.removeRole(u2, r2);
+	}
+	
+	@Test
+	public void testRemoveNotManagedRole() {
+		expectedEx.expect(IllegalArgumentException.class);
+		expectedEx.expectMessage("Unable to remove role to user: logged in user not manages role to add/remove.");
+		
+		session.login("usr1", "pwd1");
+		session.removeRole(u2, r7);
+	}
+	
 }
