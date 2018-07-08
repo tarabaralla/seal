@@ -3,6 +3,7 @@ package clast.seal.model;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 import org.apache.commons.codec.binary.Base64;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 @Embeddable
 public class Password {
 	
+	@Column(name="password")
 	private String value;
 	
 	public Password() {}
