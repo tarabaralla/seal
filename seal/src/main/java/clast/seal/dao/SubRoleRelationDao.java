@@ -170,10 +170,6 @@ public class SubRoleRelationDao extends BaseDao {
 			throw new IllegalArgumentException("SubRoleRelation: " + srr.getSubRoleId() + " is already subRole of another role.");
 		}
 		
-		if( srr instanceof IndirectSubRoleRelation && !findSubRoleRelations(null, srr.getRoleId(), srr.getSubRoleId()).isEmpty() ) {
-			throw new IllegalArgumentException("A relation between role: " + srr.getRoleId() + " and subRole: " + srr.getSubRoleId() + " already exist.");
-		}
-		
 		if( !findSubRoleRelations(null, srr.getSubRoleId(), srr.getRoleId()).isEmpty() ) {
 			throw new IllegalArgumentException("Cyclic relations are not allowed.");
 		}

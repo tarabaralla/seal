@@ -62,10 +62,10 @@ public class SubRoleRelationDaoTest extends BaseTest {
 	public void testCreateSubRoleRelation() {
 		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r1.getId(), r2.getId())));
 		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r1.getId(), r3.getId())));
-		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r2.getId(), r4.getId())));
+		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r4.getId(), r7.getId())));
 		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r2.getId(), r5.getId())));
 		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r2.getId(), r6.getId())));
-		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r4.getId(), r7.getId())));
+		assertTrue(subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r2.getId(), r4.getId())));
 	}
 	
 	@Test
@@ -458,6 +458,13 @@ public class SubRoleRelationDaoTest extends BaseTest {
 		subRoleRelationDao.createSubRoleRelation(createTestSubRoleRelation(r1.getId(), r2.getId()));
 		
 		subRoleRelationDao.findSubRoleRelations(null, null, null);		
+	}
+	
+	@Test
+	public void testSubRoleRelationType() {
+
+		assertEquals(SubRoleRelationType.DIRECT, SubRoleRelationType.valueOf(SubRoleRelationType.DIRECT.toString()));
+		assertEquals(SubRoleRelationType.INDIRECT, SubRoleRelationType.valueOf(SubRoleRelationType.INDIRECT.toString()));
 	}
 	
 	private DirectSubRoleRelation createTestSubRoleRelation(String idRole, String idSubRole) {
