@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Transient;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -15,9 +16,15 @@ public class Password {
 	@Column(name="password")
 	private String value;
 	
-	public Password() {}
+	@Transient
+	private EncryptionAlgorithm encryptionAlgorithm;
+	
+	public Password() {
+		encryptionAlgorithm = new EncryptionAlgorithmImpl();
+	}
 	
 	public Password(String plainPassword) {
+		encryptionAlgorithm = new EncryptionAlgorithmImpl();
 		encryptPassword(plainPassword);
 	}
 
@@ -27,6 +34,10 @@ public class Password {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+	
+	void setEncryptionAlgorithm(EncryptionAlgorithm encryptionAlgorithm) {
+		this.encryptionAlgorithm = encryptionAlgorithm;
 	}
 
 	public void encryptPassword(String plainPassword) {
@@ -53,14 +64,13 @@ public class Password {
 		
 		try {
 			
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			md.update(plainPassword.getBytes());
+			MessageDigest md = encryptionAlgorithm.getMessageDigest(plainPassword);
 
 			return new String(Base64.encodeBase64(md.digest()));
 			
 		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Unable to encrypt: encryption algorithm not found");
+			throw new RuntimeException("Unable to encrypt: encryption algorithm not found.");
 		}
 	}
-
+	
 }

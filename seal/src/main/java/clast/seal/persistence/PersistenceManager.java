@@ -10,8 +10,7 @@ public class PersistenceManager {
 	
 	private static EntityManager em;
 	
-	public PersistenceManager() {
-	}
+	private PersistenceManager() {}
 	
 	public static void setUpMongoConnection(String host, String port, String dbName) {
 		

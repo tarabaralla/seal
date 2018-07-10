@@ -1,6 +1,14 @@
 package clast.seal.model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
+import java.security.NoSuchAlgorithmException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,6 +63,26 @@ public class PasswordTest {
 	public void testCheckEmptyPassword() {
 		password.encryptPassword("");
 		assertTrue(password.checkPassword(""));
+	}
+	
+	@Test
+	public void testNoSuchAlgorithmException() {
+
+		expectedEx.expect(RuntimeException.class);
+		expectedEx.expectMessage("Unable to encrypt: encryption algorithm not found.");
+		
+		try {
+		
+			EncryptionAlgorithm ea = mock(EncryptionAlgorithm.class);
+			doThrow(new NoSuchAlgorithmException()).when(ea).getMessageDigest(anyString());
+			password.setEncryptionAlgorithm(ea);
+			
+			password.encryptPassword("password");
+			
+		}catch (NoSuchAlgorithmException e) {
+			fail();
+		}
+		fail();
 	}
 
 }
